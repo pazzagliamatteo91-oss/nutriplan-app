@@ -38,6 +38,11 @@ export function WheelPicker<T>({ data, selectedIndex, onChange, labelExtractor }
 
   const scrollToIndex = (index: number) => {
     listRef.current?.scrollToOffset({ offset: index * ITEM_HEIGHT, animated: true });
+    // Aggiorna subito la selezione al tocco: non aspetta la fine dello scroll
+    // animato, che su web può non scattare in tempo se si conferma subito dopo.
+    const clamped = Math.max(0, Math.min(data.length - 1, index));
+    setCurrent(clamped);
+    onChange(clamped);
   };
 
   return (

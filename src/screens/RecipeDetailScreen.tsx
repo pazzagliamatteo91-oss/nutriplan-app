@@ -13,7 +13,6 @@ import { PartnerSheet } from '../components/PartnerSheet';
 import { useApp } from '../context/AppContext';
 import { RECIPES } from '../data/recipes';
 import { intoleranceWarnings } from '../data/recipeFilters';
-import { cuisineBank } from '../data/recipeBank';
 import { CUISINE_HERO_IMAGES } from '../data/recipeImages';
 import type { RecipesStackParamList } from '../navigation/types';
 
@@ -21,7 +20,7 @@ type Props = NativeStackScreenProps<RecipesStackParamList, 'RecipeDetail'>;
 
 export function RecipeDetailScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
-  const { profile } = useApp();
+  const { profile, t, locale } = useApp();
   const [detailed, setDetailed] = useState(false);
   const [partnerSheetOpen, setPartnerSheetOpen] = useState(false);
 
@@ -45,8 +44,8 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
         <RecipeHero tagDietetico={recipe.tagDietetico} imageUri={CUISINE_HERO_IMAGES[recipe.cucina] || undefined} />
 
         <View style={styles.badgeRow}>
-          <Badge label={cuisineBank(recipe.cucina).nome} tone="accent" />
-          <Badge label={recipe.tagDietetico} tone="neutral" />
+          <Badge label={locale.cuisines[recipe.cucina] ?? recipe.cucina} tone="accent" />
+          <Badge label={locale.dietTags[recipe.tagDietetico] ?? recipe.tagDietetico} tone="neutral" />
         </View>
 
         <Text style={styles.title}>{recipe.nome}</Text>
@@ -65,11 +64,11 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
         {warnings.length > 0 && (
           <Card variant="panelAlt" style={styles.warningCard}>
             <Icon name="warningTriangle" size={16} color={colors.berry} />
-            <Text style={styles.warningText}>Attenzione: {warnings.join(', ')}</Text>
+            <Text style={styles.warningText}>{t('recipes.warning', { list: warnings.join(', ') })}</Text>
           </Card>
         )}
 
-        <Text style={styles.sectionTitle}>Ingredienti (per 2 persone)</Text>
+        <Text style={styles.sectionTitle}>{t('recipes.ingredientsFor2')}</Text>
         <Card style={styles.ingredientsCard}>
           {recipe.ingredienti.map((ing, idx) => (
             <View key={idx} style={[styles.ingredientRow, idx === recipe.ingredienti.length - 1 && { borderBottomWidth: 0 }]}>
@@ -80,13 +79,13 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
         </Card>
 
         <View style={styles.stepsHeader}>
-          <Text style={styles.sectionTitle}>Preparazione</Text>
+          <Text style={styles.sectionTitle}>{t('recipes.preparation')}</Text>
           <View style={styles.toggleRow}>
             <Pressable onPress={() => setDetailed(false)} style={[styles.toggleBtn, !detailed && styles.toggleBtnActive]}>
-              <Text style={[styles.toggleLabel, !detailed && styles.toggleLabelActive]}>Sintetica</Text>
+              <Text style={[styles.toggleLabel, !detailed && styles.toggleLabelActive]}>{t('recipes.synthetic')}</Text>
             </Pressable>
             <Pressable onPress={() => setDetailed(true)} style={[styles.toggleBtn, detailed && styles.toggleBtnActive]}>
-              <Text style={[styles.toggleLabel, detailed && styles.toggleLabelActive]}>Dettagliata</Text>
+              <Text style={[styles.toggleLabel, detailed && styles.toggleLabelActive]}>{t('recipes.detailed')}</Text>
             </Pressable>
           </View>
         </View>
@@ -101,17 +100,17 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
           ))}
         </Card>
 
-        <Text style={styles.sectionTitle}>Video</Text>
+        <Text style={styles.sectionTitle}>{t('recipes.videoTitle')}</Text>
         <RecipeVideoSection query={recipe.nome} />
 
         <Button
-          label="Acquista gli ingredienti su..."
+          label={t('recipes.buyIngredientsOn')}
           onPress={() => setPartnerSheetOpen(true)}
           style={{ marginTop: spacing.lg, marginBottom: spacing.xxl }}
         />
       </ScrollView>
 
-      <PartnerSheet visible={partnerSheetOpen} title="Acquista su" onClose={() => setPartnerSheetOpen(false)} />
+      <PartnerSheet visible={partnerSheetOpen} title={t('recipes.buyOn')} onClose={() => setPartnerSheetOpen(false)} />
     </View>
   );
 }

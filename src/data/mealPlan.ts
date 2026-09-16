@@ -22,9 +22,9 @@ export function datesForScale(scale: PlanScale, from: Date = new Date()): string
   return dates;
 }
 
-export function formatDateLabel(dateKey: string): string {
+export function formatDateLabel(dateKey: string, intlLocale: string = 'it-IT'): string {
   const d = new Date(dateKey + 'T00:00:00');
-  const label = new Intl.DateTimeFormat('it-IT', { weekday: 'short', day: 'numeric', month: 'short' }).format(d);
+  const label = new Intl.DateTimeFormat(intlLocale, { weekday: 'short', day: 'numeric', month: 'short' }).format(d);
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 

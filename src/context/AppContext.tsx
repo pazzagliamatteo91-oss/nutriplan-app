@@ -8,6 +8,7 @@ import { WorkoutLevel } from '../data/types';
 import { RECIPES } from '../data/recipes';
 import { PlanScale, aggregateMealPlanToShoppingItems } from '../data/mealPlan';
 import { scheduleShoppingReminder } from '../data/shoppingNotifications';
+import { LanguageCode, Locale, DEFAULT_LANGUAGE, LOCALES, createTranslator } from '../i18n';
 
 const STORAGE_KEY = '@nutriplan/state/v1';
 
@@ -42,6 +43,7 @@ type PersistedState = {
   lastWorkoutLog: string | null;
   mealPlan: MealPlanEntry[];
   shoppingReminderId: string | null;
+  language: LanguageCode;
 };
 
 type AppContextValue = {
@@ -67,6 +69,11 @@ type AppContextValue = {
   mealPlan: MealPlanEntry[];
   setMealPlanEntry: (data: string, pasto: MealType, recipeId: string | null) => void;
   generateShoppingListFromPlan: (dates: string[], scale: PlanScale) => number;
+
+  language: LanguageCode;
+  setLanguage: (lang: LanguageCode) => void;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+  locale: Locale;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -81,8 +88,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [lastWorkoutLog, setLastWorkoutLog] = useState<string | null>(null);
   const [mealPlan, setMealPlan] = useState<MealPlanEntry[]>([]);
   const [shoppingReminderId, setShoppingReminderId] = useState<string | null>(null);
+  const [language, setLanguageState] = useState<LanguageCode>(DEFAULT_LANGUAGE);
   const reminderIdRef = useRef<string | null>(null);
   const recipesById = useMemo(() => new Map(RECIPES.map((r) => [r.id, r])), []);
+  const t = useMemo(() => createTranslator(language), [language]);
+  const locale = useMemo(() => LOCALES[language] ?? LOCALES[DEFAULT_LANGUAGE], [language]);
 
   useEffect(() => {
     (async () => {
@@ -99,6 +109,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setMealPlan(parsed.mealPlan ?? []);
           setShoppingReminderId(parsed.shoppingReminderId ?? null);
           reminderIdRef.current = parsed.shoppingReminderId ?? null;
+          setLanguageState(parsed.language ?? DEFAULT_LANGUAGE);
         }
       } catch {
         // dati mock: se la lettura fallisce si riparte dai default
@@ -112,10 +123,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!loaded) return;
     const state: PersistedState = {
       profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, lastWorkoutLog,
-      mealPlan, shoppingReminderId,
+      mealPlan, shoppingReminderId, language,
     };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
-  }, [loaded, profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, lastWorkoutLog, mealPlan, shoppingReminderId]);
+  }, [loaded, profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, lastWorkoutLog, mealPlan, shoppingReminderId, language]);
 
   // Mantiene il promemoria spesa allineato al giorno scelto nel profilo:
   // ripianifica la notifica locale ogni volta che il giorno cambia (incluso al primo avvio).
@@ -186,6 +197,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const setLanguage = useCallback((lang: LanguageCode) => {
+    setLanguageState(lang);
+  }, []);
+
   const generateShoppingListFromPlan = useCallback(
     (dates: string[], scale: PlanScale) => {
       const items = aggregateMealPlanToShoppingItems(mealPlan, dates, recipesById);
@@ -220,11 +235,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       mealPlan,
       setMealPlanEntry,
       generateShoppingListFromPlan,
+      language,
+      setLanguage,
+      t,
+      locale,
     }),
     [
       loaded, profile, updateProfile, toggleListMember, shoppingScale, setShoppingScale, shoppingItems,
       toggleShoppingItem, resetShoppingListForScale, analysisValues, updateAnalysisValue, workoutSelection,
       setWorkoutSelection, lastWorkoutLog, logWorkoutToday, mealPlan, setMealPlanEntry, generateShoppingListFromPlan,
+      language, setLanguage, t, locale,
     ]
   );
 

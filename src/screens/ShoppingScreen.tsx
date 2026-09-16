@@ -10,47 +10,48 @@ import { useApp } from '../context/AppContext';
 import { SHOPPING_CATEGORIES, WEEKDAYS } from '../data/constants';
 import { ShoppingScale } from '../data/shopping';
 
-const SCALE_OPTIONS: { id: ShoppingScale; label: string; icon: IconName }[] = [
-  { id: 'giorno', label: 'Giorno', icon: 'calendarDay' },
-  { id: 'settimana', label: 'Settimana', icon: 'calendarWeek' },
-  { id: 'mese', label: 'Mese', icon: 'calendarMonth' },
+const SCALE_OPTIONS: { id: ShoppingScale; icon: IconName }[] = [
+  { id: 'giorno', icon: 'calendarDay' },
+  { id: 'settimana', icon: 'calendarWeek' },
+  { id: 'mese', icon: 'calendarMonth' },
 ];
 
 export function ShoppingScreen() {
-  const { profile, updateProfile, shoppingScale, setShoppingScale, shoppingItems, toggleShoppingItem } = useApp();
+  const { profile, updateProfile, shoppingScale, setShoppingScale, shoppingItems, toggleShoppingItem, t, locale } = useApp();
   const [partnerSheetOpen, setPartnerSheetOpen] = useState(false);
+  const scaleLabels: Record<ShoppingScale, string> = { giorno: t('shopping.scaleDay'), settimana: t('shopping.scaleWeek'), mese: t('shopping.scaleMonth') };
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title="Spesa" />
+      <ScreenHeader title={t('shopping.title')} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.label}>Intervallo</Text>
+        <Text style={styles.label}>{t('shopping.interval')}</Text>
         <View style={styles.scaleRow}>
           {SCALE_OPTIONS.map((opt) => {
             const active = shoppingScale === opt.id;
             return (
               <Pressable key={opt.id} style={[styles.scaleBtn, active && styles.scaleBtnActive]} onPress={() => setShoppingScale(opt.id)}>
                 <Icon name={opt.icon} size={16} color={active ? colors.accentText : colors.textMuted} />
-                <Text style={[styles.scaleLabel, active && styles.scaleLabelActive]}>{opt.label}</Text>
+                <Text style={[styles.scaleLabel, active && styles.scaleLabelActive]}>{scaleLabels[opt.id]}</Text>
               </Pressable>
             );
           })}
         </View>
 
-        <Text style={styles.label}>Giorno spesa e promemoria</Text>
+        <Text style={styles.label}>{t('shopping.shoppingDayReminder')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.daysScroll}>
           {WEEKDAYS.map((day) => {
             const active = profile.giornoSpesa === day;
             return (
               <Pressable key={day} style={[styles.dayChip, active && styles.dayChipActive]} onPress={() => updateProfile({ giornoSpesa: day })}>
-                <Text style={[styles.dayLabel, active && styles.dayLabelActive]}>{day}</Text>
+                <Text style={[styles.dayLabel, active && styles.dayLabelActive]}>{locale.weekdays[day] ?? day}</Text>
               </Pressable>
             );
           })}
         </ScrollView>
         <View style={styles.reminderNote}>
           <Icon name="bell" size={14} color={colors.accent} />
-          <Text style={styles.reminderText}>Promemoria attivo per {profile.giornoSpesa}</Text>
+          <Text style={styles.reminderText}>{t('shopping.reminderActiveFor', { day: locale.weekdays[profile.giornoSpesa] ?? profile.giornoSpesa })}</Text>
         </View>
 
         {SHOPPING_CATEGORIES.map((cat) => {
@@ -60,7 +61,7 @@ export function ShoppingScreen() {
             <View key={cat.id} style={styles.categorySection}>
               <View style={styles.categoryHeader}>
                 <Icon name={cat.icon} size={18} color={colors.accent} />
-                <Text style={styles.categoryTitle}>{cat.label}</Text>
+                <Text style={styles.categoryTitle}>{locale.shoppingCategories[cat.id] ?? cat.label}</Text>
               </View>
               <Card style={styles.categoryCard}>
                 {items.map((item, idx) => (
@@ -82,15 +83,15 @@ export function ShoppingScreen() {
         })}
 
         <Button
-          label="Salva lista"
+          label={t('shopping.saveList')}
           variant="secondary"
-          onPress={() => Alert.alert('Lista salvata', 'La tua lista della spesa è stata salvata.')}
+          onPress={() => Alert.alert(t('shopping.saveListDone'), t('shopping.saveListDoneBody'))}
           style={{ marginBottom: spacing.md }}
         />
-        <Button label="Esporta lista intera al supermercato" onPress={() => setPartnerSheetOpen(true)} style={{ marginBottom: spacing.xxl }} />
+        <Button label={t('shopping.exportFullList')} onPress={() => setPartnerSheetOpen(true)} style={{ marginBottom: spacing.xxl }} />
       </ScrollView>
 
-      <PartnerSheet visible={partnerSheetOpen} title="Esporta lista su" onClose={() => setPartnerSheetOpen(false)} />
+      <PartnerSheet visible={partnerSheetOpen} title={t('recipes.exportSelectListTitle')} onClose={() => setPartnerSheetOpen(false)} />
     </View>
   );
 }

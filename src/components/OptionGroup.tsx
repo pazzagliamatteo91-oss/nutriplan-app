@@ -10,11 +10,13 @@ type Props = {
   visibleCount: number;
   selected: string[];
   onToggle: (id: string) => void;
+  otherLabel?: string;
+  lessLabel?: string;
 };
 
 // Mostra le prime `visibleCount` opzioni + pulsante "Altro" per le restanti.
 // Le selezioni fatte tra le opzioni extra restano visibili come chip anche a pannello chiuso.
-export function OptionGroup({ options, visibleCount, selected, onToggle }: Props) {
+export function OptionGroup({ options, visibleCount, selected, onToggle, otherLabel = 'Altro', lessLabel = 'Meno' }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   const base = options.slice(0, visibleCount);
@@ -32,7 +34,7 @@ export function OptionGroup({ options, visibleCount, selected, onToggle }: Props
           <Chip key={o.id} label={o.label} selected onPress={() => onToggle(o.id)} />
         ))}
         {unselectedExtra.length > 0 && (
-          <Chip label={expanded ? 'Meno' : 'Altro'} onPress={() => setExpanded((e) => !e)} />
+          <Chip label={expanded ? lessLabel : otherLabel} onPress={() => setExpanded((e) => !e)} />
         )}
       </View>
       {expanded && (

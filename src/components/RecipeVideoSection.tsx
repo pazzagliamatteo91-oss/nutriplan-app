@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, Linking, Platform } from 'react-native';
 import { colors, fonts, radii, spacing } from '../theme';
 import { Icon } from './Icon';
+import { useApp } from '../context/AppContext';
 
 type Props = { query: string };
 
@@ -9,6 +10,7 @@ type Props = { query: string };
 // (nessuna API key richiesta, tramite l'endpoint embed di ricerca), più un link che apre
 // la vera ricerca YouTube ordinata per numero di visualizzazioni.
 export function RecipeVideoSection({ query }: Props) {
+  const { t } = useApp();
   const searchQuery = encodeURIComponent(`${query} ricetta`);
   const embedUrl = `https://www.youtube.com/embed?listType=search&list=${searchQuery}`;
   // sp=CAMSAhAB corrisponde al filtro "Numero di visualizzazioni" di YouTube.
@@ -20,7 +22,7 @@ export function RecipeVideoSection({ query }: Props) {
         {Platform.OS === 'web' ? (
           <View style={styles.webFallback}>
             <Icon name="search" size={20} color={colors.textMuted} />
-            <Text style={styles.webFallbackText}>Anteprima video disponibile sull'app mobile</Text>
+            <Text style={styles.webFallbackText}>{t('recipes.videoWebFallback')}</Text>
           </View>
         ) : (
           <LazyWebView uri={embedUrl} />
@@ -28,7 +30,7 @@ export function RecipeVideoSection({ query }: Props) {
       </View>
       <Pressable style={styles.linkRow} onPress={() => Linking.openURL(mostViewedUrl)}>
         <Icon name="search" size={16} color={colors.accent} />
-        <Text style={styles.linkText}>Vedi il video più visto su YouTube</Text>
+        <Text style={styles.linkText}>{t('recipes.mostViewedOnYoutube')}</Text>
         <Icon name="chevronRight" size={16} color={colors.textFaint} />
       </Pressable>
     </View>

@@ -7,13 +7,14 @@ import { AvatarPickerModal } from '../components/AvatarPickerModal';
 import { Card } from '../components/Card';
 import { SectionHeader } from '../components/SectionHeader';
 import { ListRow } from '../components/ListRow';
-import { OptionGroup } from '../components/OptionGroup';
+import { OptionGroup, Option } from '../components/OptionGroup';
 import { WheelPickerModal } from '../components/WheelPickerModal';
 import { IconName } from '../components/Icon';
 import { useApp } from '../context/AppContext';
 import { CUISINES, RESTRICTIONS, INTOLERANCES, ALLERGIES, LIFESTYLES, GOALS } from '../data/constants';
+import { LANGUAGES, LanguageCode, OptionDict } from '../i18n';
 
-type PickerKey = 'eta' | 'peso' | 'altezza' | 'kcal' | 'proteine' | 'stileVita' | 'obiettivo' | null;
+type PickerKey = 'eta' | 'peso' | 'altezza' | 'kcal' | 'proteine' | 'stileVita' | 'obiettivo' | 'lingua' | null;
 
 const ETA_OPTIONS = Array.from({ length: 90 - 14 + 1 }, (_, i) => 14 + i);
 const PESO_OPTIONS = Array.from({ length: 180 - 30 + 1 }, (_, i) => 30 + i);
@@ -21,9 +22,13 @@ const ALTEZZA_OPTIONS = Array.from({ length: 220 - 130 + 1 }, (_, i) => 130 + i)
 const KCAL_OPTIONS = Array.from({ length: (4000 - 1200) / 50 + 1 }, (_, i) => 1200 + i * 50);
 const PROTEINE_OPTIONS = Array.from({ length: (250 - 40) / 5 + 1 }, (_, i) => 40 + i * 5);
 
+function translateOptions(options: Option[], dict: OptionDict): Option[] {
+  return options.map((o) => ({ ...o, label: dict[o.id] ?? o.label }));
+}
+
 export function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { profile, updateProfile, toggleListMember } = useApp();
+  const { profile, updateProfile, toggleListMember, language, setLanguage, t, locale } = useApp();
   const [activePicker, setActivePicker] = useState<PickerKey>(null);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const [nameModalOpen, setNameModalOpen] = useState(false);
@@ -37,23 +42,25 @@ export function ProfileScreen() {
   } | null => {
     switch (activePicker) {
       case 'eta':
-        return { title: 'Età', data: ETA_OPTIONS, value: profile.eta, format: (v: number) => `${v} anni` };
+        return { title: t('profile.age'), data: ETA_OPTIONS, value: profile.eta, format: (v: number) => t('profile.ageUnit', { n: v }) };
       case 'peso':
-        return { title: 'Peso', data: PESO_OPTIONS, value: profile.pesoKg, format: (v: number) => `${v} kg` };
+        return { title: t('profile.weight'), data: PESO_OPTIONS, value: profile.pesoKg, format: (v: number) => `${v} kg` };
       case 'altezza':
-        return { title: 'Altezza', data: ALTEZZA_OPTIONS, value: profile.altezzaCm, format: (v: number) => `${v} cm` };
+        return { title: t('profile.height'), data: ALTEZZA_OPTIONS, value: profile.altezzaCm, format: (v: number) => `${v} cm` };
       case 'kcal':
-        return { title: 'Kcal/giorno', data: KCAL_OPTIONS, value: profile.kcalGiorno, format: (v: number) => `${v} kcal` };
+        return { title: t('profile.kcalDay'), data: KCAL_OPTIONS, value: profile.kcalGiorno, format: (v: number) => `${v} kcal` };
       case 'proteine':
-        return { title: 'Proteine/giorno', data: PROTEINE_OPTIONS, value: profile.proteineGiorno, format: (v: number) => `${v} g` };
+        return { title: t('profile.proteinDay'), data: PROTEINE_OPTIONS, value: profile.proteineGiorno, format: (v: number) => `${v} g` };
       case 'stileVita':
-        return { title: 'Stile di vita', data: LIFESTYLES, value: profile.stileVita, format: (v: string) => v };
+        return { title: t('profile.lifestyle'), data: LIFESTYLES, value: profile.stileVita, format: (v: string) => locale.lifestyles[v] ?? v };
       case 'obiettivo':
-        return { title: 'Obiettivo', data: GOALS, value: profile.obiettivo, format: (v: string) => v };
+        return { title: t('profile.goal'), data: GOALS, value: profile.obiettivo, format: (v: string) => locale.goals[v] ?? v };
+      case 'lingua':
+        return { title: t('profile.language'), data: LANGUAGES, value: LANGUAGES.find((l) => l.code === language), format: (v: { code: LanguageCode; label: string }) => locale.languages[v.code] ?? v.label };
       default:
         return null;
     }
-  }, [activePicker, profile]);
+  }, [activePicker, profile, language, t, locale]);
 
   const confirmPicker = (index: number) => {
     if (!pickerConfig) return;
@@ -66,9 +73,15 @@ export function ProfileScreen() {
       case 'proteine': updateProfile({ proteineGiorno: value as number }); break;
       case 'stileVita': updateProfile({ stileVita: value as string }); break;
       case 'obiettivo': updateProfile({ obiettivo: value as string }); break;
+      case 'lingua': setLanguage((value as { code: LanguageCode }).code); break;
     }
     setActivePicker(null);
   };
+
+  const cuisines = useMemo(() => translateOptions(CUISINES, locale.cuisines), [locale]);
+  const restrictions = useMemo(() => translateOptions(RESTRICTIONS, locale.restrictions), [locale]);
+  const intolerances = useMemo(() => translateOptions(INTOLERANCES, locale.intolerances), [locale]);
+  const allergies = useMemo(() => translateOptions(ALLERGIES, locale.allergies), [locale]);
 
   return (
     <View style={styles.screen}>
@@ -89,62 +102,71 @@ export function ProfileScreen() {
             style={{ flex: 1 }}
           >
             <Text style={styles.name}>{profile.nome}</Text>
-            <Text style={styles.editHint}>Tocca per modificare il nome</Text>
+            <Text style={styles.editHint}>{t('profile.editNameHint')}</Text>
           </Pressable>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <SectionHeader title="Parametri" />
+        <SectionHeader title={t('profile.parameters')} />
         <Card style={styles.rowsCard}>
-          <ListRow label="Età" value={`${profile.eta} anni`} onPress={() => setActivePicker('eta')} />
-          <ListRow label="Peso" value={`${profile.pesoKg} kg`} onPress={() => setActivePicker('peso')} />
-          <ListRow label="Altezza" value={`${profile.altezzaCm} cm`} onPress={() => setActivePicker('altezza')} />
-          <ListRow label="Kcal/giorno" value={`${profile.kcalGiorno} kcal`} onPress={() => setActivePicker('kcal')} />
-          <ListRow label="Proteine/giorno" value={`${profile.proteineGiorno} g`} onPress={() => setActivePicker('proteine')} />
-          <ListRow label="Stile di vita" value={profile.stileVita} onPress={() => setActivePicker('stileVita')} />
+          <ListRow label={t('profile.age')} value={t('profile.ageUnit', { n: profile.eta })} onPress={() => setActivePicker('eta')} />
+          <ListRow label={t('profile.weight')} value={`${profile.pesoKg} kg`} onPress={() => setActivePicker('peso')} />
+          <ListRow label={t('profile.height')} value={`${profile.altezzaCm} cm`} onPress={() => setActivePicker('altezza')} />
+          <ListRow label={t('profile.kcalDay')} value={`${profile.kcalGiorno} kcal`} onPress={() => setActivePicker('kcal')} />
+          <ListRow label={t('profile.proteinDay')} value={`${profile.proteineGiorno} g`} onPress={() => setActivePicker('proteine')} />
+          <ListRow label={t('profile.lifestyle')} value={locale.lifestyles[profile.stileVita] ?? profile.stileVita} onPress={() => setActivePicker('stileVita')} />
+          <ListRow label={t('profile.goal')} value={locale.goals[profile.obiettivo] ?? profile.obiettivo} onPress={() => setActivePicker('obiettivo')} />
           <View style={{ borderBottomWidth: 0 }}>
-            <ListRow label="Obiettivo" value={profile.obiettivo} onPress={() => setActivePicker('obiettivo')} />
+            <ListRow label={t('profile.language')} value={locale.languages[language]} onPress={() => setActivePicker('lingua')} />
           </View>
         </Card>
 
-        <SectionHeader title="Intolleranze" />
+        <SectionHeader title={t('profile.intolerances')} />
         <Card style={styles.optionsCard}>
           <OptionGroup
-            options={INTOLERANCES}
+            options={intolerances}
             visibleCount={5}
             selected={profile.intolleranze}
             onToggle={(id) => toggleListMember('intolleranze', id)}
+            otherLabel={t('common.other')}
+            lessLabel={t('common.less')}
           />
         </Card>
 
-        <SectionHeader title="Allergie" />
+        <SectionHeader title={t('profile.allergies')} />
         <Card style={styles.optionsCard}>
           <OptionGroup
-            options={ALLERGIES}
+            options={allergies}
             visibleCount={5}
             selected={profile.allergie}
             onToggle={(id) => toggleListMember('allergie', id)}
+            otherLabel={t('common.other')}
+            lessLabel={t('common.less')}
           />
         </Card>
 
-        <SectionHeader title="Cucina preferita" />
+        <SectionHeader title={t('profile.favoriteCuisine')} />
         <Card style={styles.optionsCard}>
           <OptionGroup
-            options={CUISINES}
+            options={cuisines}
             visibleCount={6}
             selected={profile.cucinePreferite}
             onToggle={(id) => toggleListMember('cucinePreferite', id)}
+            otherLabel={t('common.other')}
+            lessLabel={t('common.less')}
           />
         </Card>
 
-        <SectionHeader title="Restrizioni alimentari" />
+        <SectionHeader title={t('profile.restrictions')} />
         <Card style={[styles.optionsCard, { marginBottom: spacing.xxl }]}>
           <OptionGroup
-            options={RESTRICTIONS}
+            options={restrictions}
             visibleCount={4}
             selected={profile.restrizioni}
             onToggle={(id) => toggleListMember('restrizioni', id)}
+            otherLabel={t('common.other')}
+            lessLabel={t('common.less')}
           />
         </Card>
       </ScrollView>
@@ -158,6 +180,8 @@ export function ProfileScreen() {
           labelExtractor={(v) => pickerConfig.format(v as any)}
           onCancel={() => setActivePicker(null)}
           onConfirm={confirmPicker}
+          cancelLabel={t('common.cancel')}
+          confirmLabel={t('common.confirm')}
         />
       )}
 
@@ -166,24 +190,27 @@ export function ProfileScreen() {
         onClose={() => setAvatarModalOpen(false)}
         onSelectIcon={(icon) => updateProfile({ avatarIcon: icon, avatarUri: null })}
         onSelectPhoto={(uri) => updateProfile({ avatarUri: uri, avatarIcon: null })}
+        title={t('profile.chooseAvatarTitle')}
+        uploadLabel={t('profile.uploadPhoto')}
+        orChooseLabel={t('profile.orChooseIcon')}
       />
 
       <Modal visible={nameModalOpen} transparent animationType="fade" onRequestClose={() => setNameModalOpen(false)}>
         <View style={styles.nameOverlay}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setNameModalOpen(false)} />
           <View style={styles.nameCard}>
-            <Text style={styles.nameCardTitle}>Modifica nome</Text>
+            <Text style={styles.nameCardTitle}>{t('profile.editNameTitle')}</Text>
             <TextInput
               value={draftName}
               onChangeText={setDraftName}
               style={styles.nameInput}
-              placeholder="Il tuo nome"
+              placeholder={t('profile.namePlaceholder')}
               placeholderTextColor={colors.textFaint}
               autoFocus
             />
             <View style={styles.nameButtons}>
               <Pressable onPress={() => setNameModalOpen(false)} style={styles.nameCancelBtn}>
-                <Text style={styles.nameCancelLabel}>Annulla</Text>
+                <Text style={styles.nameCancelLabel}>{t('common.cancel')}</Text>
               </Pressable>
               <Pressable
                 onPress={() => {
@@ -192,7 +219,7 @@ export function ProfileScreen() {
                 }}
                 style={styles.nameConfirmBtn}
               >
-                <Text style={styles.nameConfirmLabel}>Salva</Text>
+                <Text style={styles.nameConfirmLabel}>{t('common.save')}</Text>
               </Pressable>
             </View>
           </View>

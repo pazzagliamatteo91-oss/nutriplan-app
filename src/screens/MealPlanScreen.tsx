@@ -13,23 +13,25 @@ import { RECIPES } from '../data/recipes';
 import { visibleRecipes } from '../data/recipeFilters';
 import { MEAL_TYPES } from '../data/constants';
 import { datesForScale, formatDateLabel, PlanScale } from '../data/mealPlan';
+import { INTL_LOCALE } from '../i18n';
 import type { RecipesStackParamList } from '../navigation/types';
 import type { RootTabParamList } from '../navigation/types';
 import type { MealType } from '../data/types';
 
 type Props = NativeStackScreenProps<RecipesStackParamList, 'MealPlan'>;
 
-const SCALE_OPTIONS: { id: PlanScale; label: string; icon: IconName }[] = [
-  { id: 'giorno', label: 'Giorno', icon: 'calendarDay' },
-  { id: 'settimana', label: 'Settimana', icon: 'calendarWeek' },
-  { id: 'mese', label: 'Mese', icon: 'calendarMonth' },
+const SCALE_OPTIONS: { id: PlanScale; icon: IconName }[] = [
+  { id: 'giorno', icon: 'calendarDay' },
+  { id: 'settimana', icon: 'calendarWeek' },
+  { id: 'mese', icon: 'calendarMonth' },
 ];
 
 export function MealPlanScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { profile, mealPlan, setMealPlanEntry, generateShoppingListFromPlan } = useApp();
+  const { profile, mealPlan, setMealPlanEntry, generateShoppingListFromPlan, t, locale, language } = useApp();
   const [scale, setScale] = useState<PlanScale>('settimana');
   const [picker, setPicker] = useState<{ data: string; pasto: MealType } | null>(null);
+  const scaleLabels: Record<PlanScale, string> = { giorno: t('shopping.scaleDay'), settimana: t('shopping.scaleWeek'), mese: t('shopping.scaleMonth') };
 
   const dates = useMemo(() => datesForScale(scale), [scale]);
   const recipesById = useMemo(() => new Map(RECIPES.map((r) => [r.id, r])), []);
@@ -50,16 +52,16 @@ export function MealPlanScreen({ navigation }: Props) {
   const handleGenerate = () => {
     const count = generateShoppingListFromPlan(dates, scale);
     if (count === 0) {
-      Alert.alert('Nessuna ricetta pianificata', 'Assegna almeno una ricetta a un pasto prima di generare la lista della spesa.');
+      Alert.alert(t('mealPlan.noneAlertTitle'), t('mealPlan.noneAlertBody'));
       return;
     }
     Alert.alert(
-      'Lista della spesa aggiornata',
-      `${count} articoli aggiunti alla lista, calcolati dalle ricette pianificate. Riceverai un promemoria nel giorno di spesa scelto nel profilo.`,
+      t('mealPlan.doneAlertTitle'),
+      t('mealPlan.doneAlertBody', { count }),
       [
-        { text: 'Resta qui', style: 'cancel' },
+        { text: t('mealPlan.stayHere'), style: 'cancel' },
         {
-          text: 'Vai a Spesa',
+          text: t('mealPlan.goToShopping'),
           onPress: () => navigation.getParent<BottomTabNavigationProp<RootTabParamList>>()?.navigate('SpesaTab'),
         },
       ]
@@ -72,19 +74,19 @@ export function MealPlanScreen({ navigation }: Props) {
         <Pressable onPress={() => navigation.goBack()} style={styles.backBtn} hitSlop={10}>
           <Icon name="chevronLeft" size={22} color={colors.text} />
         </Pressable>
-        <Text style={styles.topTitle}>Pianifica pasti</Text>
+        <Text style={styles.topTitle}>{t('mealPlan.title')}</Text>
         <View style={{ width: 36 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.label}>Intervallo</Text>
+        <Text style={styles.label}>{t('mealPlan.interval')}</Text>
         <View style={styles.scaleRow}>
           {SCALE_OPTIONS.map((opt) => {
             const active = scale === opt.id;
             return (
               <Pressable key={opt.id} style={[styles.scaleBtn, active && styles.scaleBtnActive]} onPress={() => setScale(opt.id)}>
                 <Icon name={opt.icon} size={16} color={active ? colors.accentText : colors.textMuted} />
-                <Text style={[styles.scaleLabel, active && styles.scaleLabelActive]}>{opt.label}</Text>
+                <Text style={[styles.scaleLabel, active && styles.scaleLabelActive]}>{scaleLabels[opt.id]}</Text>
               </Pressable>
             );
           })}
@@ -92,12 +94,12 @@ export function MealPlanScreen({ navigation }: Props) {
 
         <View style={styles.progressRow}>
           <Icon name="check" size={14} color={colors.accent} />
-          <Text style={styles.progressText}>{filledSlots}/{totalSlots} pasti pianificati in questo periodo</Text>
+          <Text style={styles.progressText}>{t('mealPlan.plannedMeals', { filled: filledSlots, total: totalSlots })}</Text>
         </View>
 
         {dates.map((date) => (
           <View key={date} style={styles.dayGroup}>
-            <Text style={styles.dayTitle}>{formatDateLabel(date)}</Text>
+            <Text style={styles.dayTitle}>{formatDateLabel(date, INTL_LOCALE[language])}</Text>
             <Card style={styles.dayCard}>
               {MEAL_TYPES.map((meal, idx) => {
                 const recipeId = planMap.get(`${date}|${meal.id}`);
@@ -110,9 +112,9 @@ export function MealPlanScreen({ navigation }: Props) {
                   >
                     <Icon name={meal.icon} size={16} color={colors.accent} />
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.mealLabel}>{meal.label}</Text>
+                      <Text style={styles.mealLabel}>{locale.mealTypes[meal.id] ?? meal.label}</Text>
                       <Text style={styles.mealValue} numberOfLines={1}>
-                        {recipe ? recipe.nome : 'Nessuna ricetta — tocca per aggiungere'}
+                        {recipe ? recipe.nome : t('mealPlan.noRecipe')}
                       </Text>
                     </View>
                     {recipe ? (
@@ -136,7 +138,7 @@ export function MealPlanScreen({ navigation }: Props) {
         ))}
 
         <Button
-          label="Genera lista della spesa"
+          label={t('mealPlan.generateButton')}
           onPress={handleGenerate}
           style={{ marginTop: spacing.md, marginBottom: spacing.xxl }}
         />

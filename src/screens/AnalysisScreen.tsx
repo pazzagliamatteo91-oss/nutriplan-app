@@ -10,13 +10,6 @@ import { useApp } from '../context/AppContext';
 import { generateMockAnalysis } from '../data/analysisParams';
 import { AnalysisValue, AnalysisStatus } from '../data/types';
 
-const STATUS_LABEL: Record<AnalysisStatus, string> = {
-  basso: 'Basso',
-  normale: 'Normale',
-  alto: 'Alto',
-  manuale: 'Da inserire',
-};
-
 function statusColor(stato: AnalysisStatus) {
   if (stato === 'alto') return colors.berry;
   if (stato === 'basso') return colors.warning;
@@ -25,10 +18,17 @@ function statusColor(stato: AnalysisStatus) {
 }
 
 export function AnalysisScreen() {
-  const { analysisValues, updateAnalysisValue } = useApp();
+  const { analysisValues, updateAnalysisValue, t } = useApp();
   const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState<AnalysisValue | null>(null);
   const [draft, setDraft] = useState('');
+
+  const STATUS_LABEL: Record<AnalysisStatus, string> = {
+    basso: t('analysis.statusLow'),
+    normale: t('analysis.statusNormal'),
+    alto: t('analysis.statusHigh'),
+    manuale: t('analysis.statusManual'),
+  };
 
   const handleUpload = async () => {
     try {
@@ -40,7 +40,7 @@ export function AnalysisScreen() {
         const extracted = generateMockAnalysis();
         extracted.forEach((v) => updateAnalysisValue(v.id, v.valore));
         setUploading(false);
-        Alert.alert('Referto elaborato', 'Valori estratti automaticamente. Puoi modificarli manualmente in ogni momento.');
+        Alert.alert(t('analysis.processedTitle'), t('analysis.processedBody'));
       }, 1200);
     } catch {
       setUploading(false);
@@ -61,19 +61,19 @@ export function AnalysisScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title="Analisi" />
+      <ScreenHeader title={t('analysis.title')} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Card style={styles.uploadCard} onPress={handleUpload}>
           <View style={styles.uploadIcon}>
             <Icon name="upload" size={20} color={colors.accentText} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.uploadTitle}>{uploading ? 'Elaborazione in corso...' : 'Carica referto PDF'}</Text>
-            <Text style={styles.uploadSubtitle}>Estrazione automatica dei valori (simulata)</Text>
+            <Text style={styles.uploadTitle}>{uploading ? t('analysis.uploadProcessing') : t('analysis.uploadTitle')}</Text>
+            <Text style={styles.uploadSubtitle}>{t('analysis.uploadSubtitle')}</Text>
           </View>
         </Card>
 
-        <Text style={styles.sectionLabel}>19 parametri standard</Text>
+        <Text style={styles.sectionLabel}>{t('analysis.paramsSectionTitle')}</Text>
         {analysisValues.map((item) => (
           <Pressable key={item.id} onPress={() => openEdit(item)}>
             <Card style={styles.paramCard}>
@@ -85,10 +85,10 @@ export function AnalysisScreen() {
               </View>
               <View style={styles.paramBottomRow}>
                 <Text style={styles.paramValue}>
-                  {item.valore !== null ? `${item.valore} ${item.unita}` : 'Non inserito'}
+                  {item.valore !== null ? `${item.valore} ${item.unita}` : t('analysis.notInserted')}
                 </Text>
                 <Text style={styles.paramRange}>
-                  Range: {item.rangeMin}-{item.rangeMax} {item.unita}
+                  {t('analysis.range', { min: item.rangeMin, max: item.rangeMax })} {item.unita}
                 </Text>
               </View>
               {item.nota ? (
@@ -112,16 +112,16 @@ export function AnalysisScreen() {
               onChangeText={setDraft}
               keyboardType="decimal-pad"
               style={styles.editInput}
-              placeholder={`Valore in ${editing?.unita ?? ''}`}
+              placeholder={editing?.unita ?? ''}
               placeholderTextColor={colors.textFaint}
               autoFocus
             />
             <View style={styles.editButtons}>
               <Pressable onPress={() => setEditing(null)} style={styles.editCancel}>
-                <Text style={styles.editCancelLabel}>Annulla</Text>
+                <Text style={styles.editCancelLabel}>{t('common.cancel')}</Text>
               </Pressable>
               <Pressable onPress={confirmEdit} style={styles.editConfirm}>
-                <Text style={styles.editConfirmLabel}>Salva</Text>
+                <Text style={styles.editConfirmLabel}>{t('common.save')}</Text>
               </Pressable>
             </View>
           </View>

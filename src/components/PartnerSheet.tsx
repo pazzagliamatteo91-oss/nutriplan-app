@@ -3,6 +3,7 @@ import { Modal, View, Text, StyleSheet, Pressable, Alert } from 'react-native';
 import { colors, fonts, radii, spacing } from '../theme';
 import { Icon } from './Icon';
 import { SUPERMARKET_PARTNERS } from '../data/constants';
+import { useApp } from '../context/AppContext';
 
 type Props = {
   visible: boolean;
@@ -13,9 +14,10 @@ type Props = {
 // L'export verso i partner è simulato: in produzione da collegare alle rispettive API
 // (Esselunga a Casa, Carrefour, Amazon Fresh).
 export function PartnerSheet({ visible, title, onClose }: Props) {
+  const { t } = useApp();
   const handleSelect = (label: string) => {
     onClose();
-    Alert.alert('Lista esportata', `Lista inviata al carrello ${label}.\n(Integrazione reale da collegare in produzione.)`);
+    Alert.alert(t('partnerSheet.exportedTitle'), t('partnerSheet.exportedBody', { label }));
   };
 
   return (

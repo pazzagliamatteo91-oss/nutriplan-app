@@ -17,7 +17,7 @@ import type { MealType } from '../data/types';
 type Props = NativeStackScreenProps<RecipesStackParamList, 'RecipesList'>;
 
 export function RecipesListScreen({ navigation, route }: Props) {
-  const { profile } = useApp();
+  const { profile, t, locale } = useApp();
   const [mealType, setMealType] = useState<MealType>((route.params?.mealType as MealType) ?? 'colazione');
   const [cuisineFilter, setCuisineFilter] = useState<string | null>(route.params?.cuisineId ?? null);
 
@@ -25,15 +25,16 @@ export function RecipesListScreen({ navigation, route }: Props) {
     () => visibleRecipes(RECIPES, profile, { mealType, cuisineId: cuisineFilter ?? undefined }),
     [profile, mealType, cuisineFilter]
   );
+  const cuisines = useMemo(() => CUISINES.map((o) => ({ ...o, label: locale.cuisines[o.id] ?? o.label })), [locale]);
 
   return (
     <View style={styles.screen}>
       <ScreenHeader
-        title="Ricette"
+        title={t('recipes.title')}
         right={
           <Pressable style={styles.planBtn} onPress={() => navigation.navigate('MealPlan')} hitSlop={8}>
             <Icon name="calendarWeek" size={15} color={colors.accentText} />
-            <Text style={styles.planBtnLabel}>Pianifica</Text>
+            <Text style={styles.planBtnLabel}>{t('recipes.planButton')}</Text>
           </Pressable>
         }
       />
@@ -43,7 +44,7 @@ export function RecipesListScreen({ navigation, route }: Props) {
           return (
             <Pressable key={m.id} style={[styles.mealTab, active && styles.mealTabActive]} onPress={() => setMealType(m.id as MealType)}>
               <Icon name={m.icon} size={16} color={active ? colors.accentText : colors.textMuted} />
-              <Text style={[styles.mealTabLabel, active && styles.mealTabLabelActive]}>{m.label}</Text>
+              <Text style={[styles.mealTabLabel, active && styles.mealTabLabelActive]}>{locale.mealTypes[m.id] ?? m.label}</Text>
             </Pressable>
           );
         })}
@@ -55,16 +56,18 @@ export function RecipesListScreen({ navigation, route }: Props) {
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>Filtra per cucina</Text>
+            <Text style={styles.filterLabel}>{t('recipes.filterByCuisine')}</Text>
             <View style={styles.quickChips}>
-              <Chip label="Tutte" selected={cuisineFilter === null} onPress={() => setCuisineFilter(null)} />
-              <Chip label="Varie" selected={cuisineFilter === 'varie'} onPress={() => setCuisineFilter('varie')} />
+              <Chip label={t('common.all')} selected={cuisineFilter === null} onPress={() => setCuisineFilter(null)} />
+              <Chip label={t('recipes.misc')} selected={cuisineFilter === 'varie'} onPress={() => setCuisineFilter('varie')} />
             </View>
             <OptionGroup
-              options={CUISINES}
+              options={cuisines}
               visibleCount={6}
               selected={cuisineFilter ? [cuisineFilter] : []}
               onToggle={(id) => setCuisineFilter((prev) => (prev === id ? null : id))}
+              otherLabel={t('common.other')}
+              lessLabel={t('common.less')}
             />
           </View>
         }
@@ -77,7 +80,7 @@ export function RecipesListScreen({ navigation, route }: Props) {
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>Nessuna ricetta disponibile per questa combinazione di filtri.</Text>
+            <Text style={styles.emptyText}>{t('recipes.noRecipesFound')}</Text>
           </View>
         }
       />

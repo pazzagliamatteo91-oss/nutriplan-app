@@ -11,6 +11,8 @@ type Props<T> = {
   labelExtractor: (item: T) => string;
   onCancel: () => void;
   onConfirm: (index: number) => void;
+  cancelLabel?: string;
+  confirmLabel?: string;
 };
 
 export function WheelPickerModal<T>({
@@ -21,6 +23,8 @@ export function WheelPickerModal<T>({
   labelExtractor,
   onCancel,
   onConfirm,
+  cancelLabel = 'Annulla',
+  confirmLabel = 'Conferma',
 }: Props<T>) {
   const [pendingIndex, setPendingIndex] = useState(selectedIndex);
 
@@ -31,11 +35,11 @@ export function WheelPickerModal<T>({
         <View style={styles.sheet}>
           <View style={styles.headerRow}>
             <Pressable onPress={onCancel} hitSlop={8}>
-              <Text style={styles.cancel}>Annulla</Text>
+              <Text style={styles.cancel}>{cancelLabel}</Text>
             </Pressable>
             <Text style={styles.title}>{title}</Text>
             <Pressable onPress={() => onConfirm(pendingIndex)} hitSlop={8}>
-              <Text style={styles.confirm}>Conferma</Text>
+              <Text style={styles.confirm}>{confirmLabel}</Text>
             </Pressable>
           </View>
           <WheelPicker

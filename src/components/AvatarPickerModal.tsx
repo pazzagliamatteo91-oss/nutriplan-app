@@ -11,9 +11,20 @@ type Props = {
   onClose: () => void;
   onSelectIcon: (icon: IconName) => void;
   onSelectPhoto: (uri: string) => void;
+  title?: string;
+  uploadLabel?: string;
+  orChooseLabel?: string;
 };
 
-export function AvatarPickerModal({ visible, onClose, onSelectIcon, onSelectPhoto }: Props) {
+export function AvatarPickerModal({
+  visible,
+  onClose,
+  onSelectIcon,
+  onSelectPhoto,
+  title = 'Scegli avatar',
+  uploadLabel = 'Carica una foto',
+  orChooseLabel = "Oppure scegli un'icona",
+}: Props) {
   const pickPhoto = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
@@ -34,14 +45,14 @@ export function AvatarPickerModal({ visible, onClose, onSelectIcon, onSelectPhot
       <View style={styles.overlay}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={styles.sheet}>
-          <Text style={styles.title}>Scegli avatar</Text>
+          <Text style={styles.title}>{title}</Text>
           <Pressable style={styles.photoRow} onPress={pickPhoto}>
             <View style={styles.photoIcon}>
               <Icon name="camera" size={20} color={colors.accentText} />
             </View>
-            <Text style={styles.photoLabel}>Carica una foto</Text>
+            <Text style={styles.photoLabel}>{uploadLabel}</Text>
           </Pressable>
-          <Text style={styles.subtitle}>Oppure scegli un'icona</Text>
+          <Text style={styles.subtitle}>{orChooseLabel}</Text>
           <View style={styles.iconGrid}>
             {PRESET_ICONS.map((icon) => (
               <Pressable

@@ -11,10 +11,11 @@ import { ColorIcon, ColorIconName } from '../components/ColorIcon';
 import { useApp } from '../context/AppContext';
 import { RECIPES } from '../data/recipes';
 import { visibleRecipes } from '../data/recipeFilters';
+import { INTL_LOCALE } from '../i18n';
 import type { RootTabParamList } from '../navigation/types';
 
-function formatToday() {
-  const label = new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+function formatToday(locale: string) {
+  const label = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
@@ -28,20 +29,21 @@ type Tile = {
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
-  const { profile, shoppingItems, analysisValues, lastWorkoutLog } = useApp();
+  const { profile, shoppingItems, analysisValues, lastWorkoutLog, language, t, locale } = useApp();
+  const intlLocale = INTL_LOCALE[language] ?? 'it-IT';
 
   const recipeCount = useMemo(() => visibleRecipes(RECIPES, profile, {}).length, [profile]);
   const shoppingRemaining = shoppingItems.filter((i) => !i.spuntato).length;
   const analysisFilled = analysisValues.filter((a) => a.valore !== null).length;
   const lastWorkoutLabel = lastWorkoutLog
-    ? new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' }).format(new Date(lastWorkoutLog))
-    : 'Nessuna';
+    ? new Intl.DateTimeFormat(intlLocale, { day: 'numeric', month: 'short' }).format(new Date(lastWorkoutLog))
+    : t('home.never');
 
   const tiles: Tile[] = [
-    { key: 'RicetteTab', title: 'Ricette', icon: 'recipes', stat: `${recipeCount} disponibili` },
-    { key: 'SpesaTab', title: 'Spesa', icon: 'shopping', stat: `${shoppingRemaining} articoli in lista` },
-    { key: 'AnalisiTab', title: 'Analisi', icon: 'analysis', stat: `${analysisFilled}/${analysisValues.length} valori inseriti` },
-    { key: 'AllenamentoTab', title: 'Allenamento', icon: 'workout', stat: `Ultima: ${lastWorkoutLabel}` },
+    { key: 'RicetteTab', title: t('nav.recipes'), icon: 'recipes', stat: t('home.recipesAvailable', { count: recipeCount }) },
+    { key: 'SpesaTab', title: t('nav.shopping'), icon: 'shopping', stat: t('home.itemsInList', { count: shoppingRemaining }) },
+    { key: 'AnalisiTab', title: t('nav.analysis'), icon: 'analysis', stat: t('home.valuesEntered', { filled: analysisFilled, total: analysisValues.length }) },
+    { key: 'AllenamentoTab', title: t('nav.workout'), icon: 'workout', stat: t('home.lastWorkout', { date: lastWorkoutLabel }) },
   ];
 
   return (
@@ -51,7 +53,7 @@ export function HomeScreen() {
           <Avatar uri={profile.avatarUri} iconName={profile.avatarIcon as any} size={52} />
           <View style={styles.headerText}>
             <Text style={styles.name}>{profile.nome}</Text>
-            <Text style={styles.date}>{formatToday()}</Text>
+            <Text style={styles.date}>{formatToday(intlLocale)}</Text>
           </View>
         </View>
       </View>
@@ -62,9 +64,9 @@ export function HomeScreen() {
             <Icon name="bell" size={20} color={colors.accent} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.notificationTitle}>Promemoria spesa</Text>
+            <Text style={styles.notificationTitle}>{t('home.shoppingReminderTitle')}</Text>
             <Text style={styles.notificationBody}>
-              Hai impostato {profile.giornoSpesa} come giorno per fare la spesa.
+              {t('home.shoppingReminderBody', { day: locale.weekdays[profile.giornoSpesa] ?? profile.giornoSpesa })}
             </Text>
           </View>
         </Card>

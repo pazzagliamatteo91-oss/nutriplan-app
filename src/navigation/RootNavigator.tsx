@@ -10,6 +10,7 @@ import { ShoppingScreen } from '../screens/ShoppingScreen';
 import { AnalysisScreen } from '../screens/AnalysisScreen';
 import { WorkoutScreen } from '../screens/WorkoutScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { useApp } from '../context/AppContext';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -35,6 +36,7 @@ const navTheme = {
 };
 
 export function RootNavigator() {
+  const { t } = useApp();
   return (
     <NavigationContainer theme={navTheme}>
       <Tab.Navigator
@@ -56,12 +58,12 @@ export function RootNavigator() {
           ),
         })}
       >
-        <Tab.Screen name="HomeTab" component={HomeScreen} options={{ title: 'Home' }} />
-        <Tab.Screen name="RicetteTab" component={RecipesNavigator} options={{ title: 'Ricette' }} />
-        <Tab.Screen name="SpesaTab" component={ShoppingScreen} options={{ title: 'Spesa' }} />
-        <Tab.Screen name="AnalisiTab" component={AnalysisScreen} options={{ title: 'Analisi' }} />
-        <Tab.Screen name="AllenamentoTab" component={WorkoutScreen} options={{ title: 'Allenamento' }} />
-        <Tab.Screen name="ProfiloTab" component={ProfileScreen} options={{ title: 'Profilo' }} />
+        <Tab.Screen name="HomeTab" component={HomeScreen} options={{ title: t('nav.home') }} />
+        <Tab.Screen name="RicetteTab" component={RecipesNavigator} options={{ title: t('nav.recipes') }} />
+        <Tab.Screen name="SpesaTab" component={ShoppingScreen} options={{ title: t('nav.shopping') }} />
+        <Tab.Screen name="AnalisiTab" component={AnalysisScreen} options={{ title: t('nav.analysis') }} />
+        <Tab.Screen name="AllenamentoTab" component={WorkoutScreen} options={{ title: t('nav.workout') }} />
+        <Tab.Screen name="ProfiloTab" component={ProfileScreen} options={{ title: t('nav.profile') }} />
       </Tab.Navigator>
     </NavigationContainer>
   );

@@ -5,7 +5,7 @@ import { Card } from './Card';
 import { Badge } from './Badge';
 import { Icon } from './Icon';
 import { Recipe } from '../data/types';
-import { cuisineBank } from '../data/recipeBank';
+import { useApp } from '../context/AppContext';
 
 type Props = {
   recipe: Recipe;
@@ -14,12 +14,13 @@ type Props = {
 };
 
 export function RecipeCard({ recipe, warnings, onPress }: Props) {
-  const cuisineName = cuisineBank(recipe.cucina).nome;
+  const { t, locale } = useApp();
+  const cuisineName = locale.cuisines[recipe.cucina] ?? recipe.cucina;
   return (
     <Card onPress={onPress} style={styles.card}>
       <View style={styles.topRow}>
         <Badge label={cuisineName} tone="accent" />
-        <Badge label={recipe.tagDietetico} tone="neutral" />
+        <Badge label={locale.dietTags[recipe.tagDietetico] ?? recipe.tagDietetico} tone="neutral" />
       </View>
       <Text style={styles.name}>{recipe.nome}</Text>
       <View style={styles.metaRow}>
@@ -36,7 +37,7 @@ export function RecipeCard({ recipe, warnings, onPress }: Props) {
         <View style={styles.warningRow}>
           <Icon name="warningTriangle" size={13} color={colors.berry} />
           <Text style={styles.warningText}>
-            {warnings.length > 0 ? `Attenzione: ${warnings.join(', ')}` : 'Contiene lattosio'}
+            {warnings.length > 0 ? t('recipes.warning', { list: warnings.join(', ') }) : t('recipes.containsLactose')}
           </Text>
         </View>
       )}

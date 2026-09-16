@@ -3,7 +3,7 @@ import { Modal, View, Text, StyleSheet, Pressable, FlatList } from 'react-native
 import { colors, fonts, radii, spacing } from '../theme';
 import { Icon } from './Icon';
 import { Recipe, MealType } from '../data/types';
-import { MEAL_TYPES } from '../data/constants';
+import { useApp } from '../context/AppContext';
 
 type Props = {
   visible: boolean;
@@ -14,7 +14,8 @@ type Props = {
 };
 
 export function RecipePickerModal({ visible, mealType, recipes, onSelect, onClose }: Props) {
-  const mealLabel = MEAL_TYPES.find((m) => m.id === mealType)?.label ?? mealType;
+  const { t, locale } = useApp();
+  const mealLabel = locale.mealTypes[mealType] ?? mealType;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -22,7 +23,7 @@ export function RecipePickerModal({ visible, mealType, recipes, onSelect, onClos
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text style={styles.title}>Scegli per {mealLabel.toLowerCase()}</Text>
+            <Text style={styles.title}>{t('recipes.pickForMeal', { meal: mealLabel.toLowerCase() })}</Text>
             <Pressable onPress={onClose} hitSlop={8}>
               <Icon name="close" size={18} color={colors.textMuted} />
             </Pressable>
@@ -32,7 +33,7 @@ export function RecipePickerModal({ visible, mealType, recipes, onSelect, onClos
             keyExtractor={(r) => r.id}
             style={{ maxHeight: 420 }}
             ListEmptyComponent={
-              <Text style={styles.empty}>Nessuna ricetta disponibile per questo pasto con i filtri attuali.</Text>
+              <Text style={styles.empty}>{t('recipes.noRecipesForMeal')}</Text>
             }
             renderItem={({ item }) => (
               <Pressable style={styles.row} onPress={() => onSelect(item.id)}>

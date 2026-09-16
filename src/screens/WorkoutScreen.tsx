@@ -11,14 +11,11 @@ import { MAIN_SPORTS, EXTENDED_SPORTS, DEVICE_TYPES } from '../data/constants';
 import { WORKOUT_LEVELS, SPORT_ICONS, specificoLabel, supportoLabel, generateWeekPlan, getSessionExercises } from '../data/workouts';
 import { WorkoutLevel } from '../data/types';
 
-function sportLabel(sportId: string) {
-  return MAIN_SPORTS.find((s) => s.id === sportId)?.label ?? sportId;
-}
-
 type SessionKind = 'specifico' | 'supporto';
 
 export function WorkoutScreen() {
-  const { profile, updateProfile, workoutSelection, setWorkoutSelection, lastWorkoutLog, logWorkoutToday } = useApp();
+  const { profile, updateProfile, workoutSelection, setWorkoutSelection, lastWorkoutLog, logWorkoutToday, t, locale } = useApp();
+  const sportLabel = (sportId: string) => locale.mainSports[sportId] ?? MAIN_SPORTS.find((s) => s.id === sportId)?.label ?? sportId;
   const [extendedOpen, setExtendedOpen] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [dayTab, setDayTab] = useState<Record<string, SessionKind>>({});
@@ -36,32 +33,32 @@ export function WorkoutScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title="Allenamento" />
+      <ScreenHeader title={t('workout.title')} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.label}>Sport</Text>
+        <Text style={styles.label}>{t('workout.sport')}</Text>
         <View style={styles.sportGrid}>
           {MAIN_SPORTS.map((s) => {
             const active = sportId === s.id;
             return (
               <Pressable key={s.id} style={[styles.sportChip, active && styles.sportChipActive]} onPress={() => setSport(s.id)}>
                 <Icon name={SPORT_ICONS[s.id]} size={18} color={active ? colors.accentText : colors.text} />
-                <Text style={[styles.sportLabel, active && styles.sportLabelActive]}>{s.label}</Text>
+                <Text style={[styles.sportLabel, active && styles.sportLabelActive]}>{locale.mainSports[s.id] ?? s.label}</Text>
               </Pressable>
             );
           })}
           <Pressable style={styles.sportChip} onPress={() => setExtendedOpen(true)}>
             <Icon name="moreDots" size={18} color={colors.text} />
-            <Text style={styles.sportLabel}>Altro</Text>
+            <Text style={styles.sportLabel}>{t('workout.other')}</Text>
           </Pressable>
         </View>
         {!MAIN_SPORTS.some((s) => s.id === sportId) && (
-          <Text style={styles.currentExtended}>Disciplina selezionata: {sportId}</Text>
+          <Text style={styles.currentExtended}>{t('workout.selectedDiscipline', { sport: sportId })}</Text>
         )}
 
-        <Text style={styles.label}>Livello</Text>
+        <Text style={styles.label}>{t('workout.level')}</Text>
         <View style={styles.levelRow}>
           {WORKOUT_LEVELS.map((l) => (
-            <Chip key={l} label={l} selected={livello === l} onPress={() => setLevel(l)} />
+            <Chip key={l} label={locale.workoutLevels[l] ?? l} selected={livello === l} onPress={() => setLevel(l)} />
           ))}
         </View>
 
@@ -70,7 +67,7 @@ export function WorkoutScreen() {
             <View style={styles.sessionIconWrap}>
               <Icon name={icon} size={20} color={colors.accentText} />
             </View>
-            <Text style={styles.sessionTitle}>Specifico</Text>
+            <Text style={styles.sessionTitle}>{t('workout.specific')}</Text>
             <Text style={styles.sessionSubtitle}>{specificoLabel(sportId)}</Text>
             {specificoEsercizi.slice(0, 3).map((ex) => (
               <View key={ex.nome} style={styles.exerciseRow}>
@@ -83,7 +80,7 @@ export function WorkoutScreen() {
             <View style={[styles.sessionIconWrap, { backgroundColor: colors.accent }]}>
               <Icon name="gym" size={20} color={colors.accentText} />
             </View>
-            <Text style={styles.sessionTitle}>Supporto</Text>
+            <Text style={styles.sessionTitle}>{t('workout.support')}</Text>
             <Text style={styles.sessionSubtitle}>{supportoLabel(sportId)}</Text>
             {supportoEsercizi.slice(0, 3).map((ex) => (
               <View key={ex.nome} style={styles.exerciseRow}>
@@ -94,8 +91,8 @@ export function WorkoutScreen() {
           </Card>
         </View>
 
-        <Text style={styles.sectionTitle}>Scheda della settimana — {sportLabel(sportId)} · {livello}</Text>
-        <Text style={styles.sectionSubtitle}>Tocca un giorno per vedere gli esercizi, o Specifico/Supporto per cambiare sessione</Text>
+        <Text style={styles.sectionTitle}>{t('workout.weekPlanTitle', { sport: sportLabel(sportId), level: locale.workoutLevels[livello] ?? livello })}</Text>
+        <Text style={styles.sectionSubtitle}>{t('workout.weekPlanSubtitle')}</Text>
         <Card style={styles.weekCard}>
           {weekPlan.map((day, idx) => {
             const isExpanded = expandedDay === day.giorno;
@@ -108,11 +105,11 @@ export function WorkoutScreen() {
                   disabled={day.isRiposo}
                   onPress={() => setExpandedDay((prev) => (prev === day.giorno ? null : day.giorno))}
                 >
-                  <Text style={styles.dayName}>{day.giorno}</Text>
+                  <Text style={styles.dayName}>{locale.weekdays[day.giorno] ?? day.giorno}</Text>
                   {day.isRiposo ? (
                     <View style={styles.dayInfo}>
-                      <Text style={[styles.dayType, { color: colors.textFaint }]}>Riposo</Text>
-                      <Text style={styles.dayDesc}>Recupero attivo o riposo completo</Text>
+                      <Text style={[styles.dayType, { color: colors.textFaint }]}>{t('workout.rest')}</Text>
+                      <Text style={styles.dayDesc}>{t('workout.restDescription')}</Text>
                     </View>
                   ) : (
                     <View style={styles.dayContent}>
@@ -121,13 +118,13 @@ export function WorkoutScreen() {
                           style={[styles.dayToggleBtn, activeTab === 'specifico' && styles.dayToggleBtnActive]}
                           onPress={() => setDayTab((prev) => ({ ...prev, [day.giorno]: 'specifico' }))}
                         >
-                          <Text style={[styles.dayToggleLabel, activeTab === 'specifico' && styles.dayToggleLabelActive]}>Specifico</Text>
+                          <Text style={[styles.dayToggleLabel, activeTab === 'specifico' && styles.dayToggleLabelActive]}>{t('workout.specific')}</Text>
                         </Pressable>
                         <Pressable
                           style={[styles.dayToggleBtn, activeTab === 'supporto' && styles.dayToggleBtnActive]}
                           onPress={() => setDayTab((prev) => ({ ...prev, [day.giorno]: 'supporto' }))}
                         >
-                          <Text style={[styles.dayToggleLabel, activeTab === 'supporto' && styles.dayToggleLabelActive]}>Supporto</Text>
+                          <Text style={[styles.dayToggleLabel, activeTab === 'supporto' && styles.dayToggleLabelActive]}>{t('workout.support')}</Text>
                         </Pressable>
                       </View>
                       <View style={styles.dayContentRight}>
@@ -153,13 +150,13 @@ export function WorkoutScreen() {
         </Card>
 
         <Button
-          label={lastWorkoutLog ? 'Segna un altro allenamento come completato' : 'Segna allenamento di oggi come completato'}
+          label={lastWorkoutLog ? t('workout.logAnother') : t('workout.logToday')}
           variant="secondary"
           onPress={logWorkoutToday}
           style={{ marginBottom: spacing.lg }}
         />
 
-        <Text style={styles.label}>Dispositivi collegati</Text>
+        <Text style={styles.label}>{t('workout.connectedDevices')}</Text>
         <Card style={styles.devicesCard}>
           {DEVICE_TYPES.map((d, idx) => {
             const connected = !!profile.dispositivi[d.id];
@@ -173,7 +170,7 @@ export function WorkoutScreen() {
                 <Text style={styles.deviceLabel}>{d.label}</Text>
                 <View style={[styles.statusDot, { backgroundColor: connected ? colors.accent : colors.textFaint }]} />
                 <Text style={[styles.deviceStatus, { color: connected ? colors.accent : colors.textFaint }]}>
-                  {connected ? 'Connesso' : 'Non connesso'}
+                  {connected ? t('workout.connected') : t('workout.notConnected')}
                 </Text>
               </Pressable>
             );
@@ -184,10 +181,8 @@ export function WorkoutScreen() {
           <Card variant="panelAlt" style={styles.suggestionCard}>
             <Icon name="flame" size={18} color={colors.accent} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.suggestionTitle}>Variante proposta</Text>
-              <Text style={styles.suggestionText}>
-                In base all'attività rilevata dai tuoi dispositivi, potresti aggiungere una sessione di recupero leggero questa settimana.
-              </Text>
+              <Text style={styles.suggestionTitle}>{t('workout.suggestionTitle')}</Text>
+              <Text style={styles.suggestionText}>{t('workout.suggestionBody')}</Text>
             </View>
           </Card>
         )}
@@ -197,7 +192,7 @@ export function WorkoutScreen() {
         <View style={styles.modalOverlay}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setExtendedOpen(false)} />
           <View style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>Altre discipline</Text>
+            <Text style={styles.modalTitle}>{t('workout.otherDisciplinesTitle')}</Text>
             <ScrollView style={{ maxHeight: 420 }}>
               <View style={styles.extendedGrid}>
                 {EXTENDED_SPORTS.map((name) => (
