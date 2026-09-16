@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, radii } from '../theme';
 import { Icon, IconName } from './Icon';
@@ -12,11 +12,20 @@ const DIET_ICON: Record<DietTag, IconName> = {
   Vegano: 'leaf',
 };
 
-type Props = { tagDietetico: DietTag };
+type Props = { tagDietetico: DietTag; imageUri?: string };
 
-// Illustrazione decorativa del piatto: gradiente + icona SVG personalizzata al posto
-// di una foto stock, coerente con l'identità visiva "niente emoji di sistema".
-export function RecipeHero({ tagDietetico }: Props) {
+// Immagine del piatto per invogliare l'utente; se non disponibile (o non ancora
+// generata per questa cucina) usa un fallback decorativo: gradiente + icona SVG
+// personalizzata, coerente con l'identità visiva "niente emoji di sistema".
+export function RecipeHero({ tagDietetico, imageUri }: Props) {
+  if (imageUri) {
+    return (
+      <View style={styles.hero}>
+        <Image source={{ uri: imageUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+      </View>
+    );
+  }
+
   return (
     <LinearGradient colors={[colors.panelAlt, colors.accent]} style={styles.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
       <View style={styles.iconWrap}>
@@ -33,6 +42,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
+    overflow: 'hidden',
+    backgroundColor: colors.panel,
   },
   iconWrap: {
     width: 96,

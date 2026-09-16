@@ -28,7 +28,15 @@ export function RecipesListScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title="Ricette" />
+      <ScreenHeader
+        title="Ricette"
+        right={
+          <Pressable style={styles.planBtn} onPress={() => navigation.navigate('MealPlan')} hitSlop={8}>
+            <Icon name="calendarWeek" size={15} color={colors.accentText} />
+            <Text style={styles.planBtnLabel}>Pianifica</Text>
+          </Pressable>
+        }
+      />
       <View style={styles.mealTabs}>
         {MEAL_TYPES.map((m) => {
           const active = mealType === m.id;
@@ -79,6 +87,11 @@ export function RecipesListScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
+  planBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: 'rgba(38,49,26,0.16)', paddingVertical: 8, paddingHorizontal: 12, borderRadius: radii.pill,
+  },
+  planBtnLabel: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.accentText },
   mealTabs: {
     flexDirection: 'row',
     paddingHorizontal: spacing.lg,

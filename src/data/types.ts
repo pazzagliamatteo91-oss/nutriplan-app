@@ -77,3 +77,10 @@ export type ShoppingItem = {
   quantita: string;
   spuntato: boolean;
 };
+
+// Assegnazione di una ricetta a un pasto in una data specifica (piano pasti).
+export type MealPlanEntry = {
+  data: string; // 'YYYY-MM-DD'
+  pasto: MealType;
+  recipeId: string;
+};

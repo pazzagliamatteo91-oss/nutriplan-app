@@ -8,11 +8,13 @@ import { Badge } from '../components/Badge';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { RecipeHero } from '../components/RecipeHero';
+import { RecipeVideoSection } from '../components/RecipeVideoSection';
 import { PartnerSheet } from '../components/PartnerSheet';
 import { useApp } from '../context/AppContext';
 import { RECIPES } from '../data/recipes';
 import { intoleranceWarnings } from '../data/recipeFilters';
 import { cuisineBank } from '../data/recipeBank';
+import { CUISINE_HERO_IMAGES } from '../data/recipeImages';
 import type { RecipesStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<RecipesStackParamList, 'RecipeDetail'>;
@@ -40,7 +42,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <RecipeHero tagDietetico={recipe.tagDietetico} />
+        <RecipeHero tagDietetico={recipe.tagDietetico} imageUri={CUISINE_HERO_IMAGES[recipe.cucina] || undefined} />
 
         <View style={styles.badgeRow}>
           <Badge label={cuisineBank(recipe.cucina).nome} tone="accent" />
@@ -98,6 +100,9 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
             </View>
           ))}
         </Card>
+
+        <Text style={styles.sectionTitle}>Video</Text>
+        <RecipeVideoSection query={recipe.nome} />
 
         <Button
           label="Acquista gli ingredienti su..."

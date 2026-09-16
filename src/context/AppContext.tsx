@@ -1,10 +1,13 @@
-import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { UserProfile, AnalysisValue, ShoppingItem } from '../data/types';
+import { UserProfile, AnalysisValue, ShoppingItem, MealPlanEntry, MealType } from '../data/types';
 import { generateMockAnalysis, noteForValue } from '../data/analysisParams';
 import { generateShoppingList, ShoppingScale } from '../data/shopping';
 import { WEEKDAYS } from '../data/constants';
 import { WorkoutLevel } from '../data/types';
+import { RECIPES } from '../data/recipes';
+import { PlanScale, aggregateMealPlanToShoppingItems } from '../data/mealPlan';
+import { scheduleShoppingReminder } from '../data/shoppingNotifications';
 
 const STORAGE_KEY = '@nutriplan/state/v1';
 
@@ -37,6 +40,8 @@ type PersistedState = {
   analysisValues: AnalysisValue[];
   workoutSelection: WorkoutSelection;
   lastWorkoutLog: string | null;
+  mealPlan: MealPlanEntry[];
+  shoppingReminderId: string | null;
 };
 
 type AppContextValue = {
@@ -58,6 +63,10 @@ type AppContextValue = {
   setWorkoutSelection: (sel: WorkoutSelection) => void;
   lastWorkoutLog: string | null;
   logWorkoutToday: () => void;
+
+  mealPlan: MealPlanEntry[];
+  setMealPlanEntry: (data: string, pasto: MealType, recipeId: string | null) => void;
+  generateShoppingListFromPlan: (dates: string[], scale: PlanScale) => number;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -70,6 +79,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [analysisValues, setAnalysisValues] = useState<AnalysisValue[]>(() => generateMockAnalysis());
   const [workoutSelection, setWorkoutSelectionState] = useState<WorkoutSelection>({ sportId: 'corsa', livello: 'Intermedio' });
   const [lastWorkoutLog, setLastWorkoutLog] = useState<string | null>(null);
+  const [mealPlan, setMealPlan] = useState<MealPlanEntry[]>([]);
+  const [shoppingReminderId, setShoppingReminderId] = useState<string | null>(null);
+  const reminderIdRef = useRef<string | null>(null);
+  const recipesById = useMemo(() => new Map(RECIPES.map((r) => [r.id, r])), []);
 
   useEffect(() => {
     (async () => {
@@ -83,6 +96,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setAnalysisValues(parsed.analysisValues ?? generateMockAnalysis());
           setWorkoutSelectionState(parsed.workoutSelection ?? { sportId: 'corsa', livello: 'Intermedio' });
           setLastWorkoutLog(parsed.lastWorkoutLog ?? null);
+          setMealPlan(parsed.mealPlan ?? []);
+          setShoppingReminderId(parsed.shoppingReminderId ?? null);
+          reminderIdRef.current = parsed.shoppingReminderId ?? null;
         }
       } catch {
         // dati mock: se la lettura fallisce si riparte dai default
@@ -94,9 +110,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loaded) return;
-    const state: PersistedState = { profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, lastWorkoutLog };
+    const state: PersistedState = {
+      profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, lastWorkoutLog,
+      mealPlan, shoppingReminderId,
+    };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
-  }, [loaded, profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, lastWorkoutLog]);
+  }, [loaded, profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, lastWorkoutLog, mealPlan, shoppingReminderId]);
+
+  // Mantiene il promemoria spesa allineato al giorno scelto nel profilo:
+  // ripianifica la notifica locale ogni volta che il giorno cambia (incluso al primo avvio).
+  useEffect(() => {
+    if (!loaded) return;
+    scheduleShoppingReminder(profile.giornoSpesa, reminderIdRef.current).then((id) => {
+      reminderIdRef.current = id;
+      setShoppingReminderId(id);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, profile.giornoSpesa]);
 
   const updateProfile = useCallback((patch: Partial<UserProfile>) => {
     setProfile((p) => ({ ...p, ...patch }));
@@ -149,6 +179,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setLastWorkoutLog(new Date().toISOString());
   }, []);
 
+  const setMealPlanEntry = useCallback((data: string, pasto: MealType, recipeId: string | null) => {
+    setMealPlan((prev) => {
+      const withoutSlot = prev.filter((e) => !(e.data === data && e.pasto === pasto));
+      return recipeId ? [...withoutSlot, { data, pasto, recipeId }] : withoutSlot;
+    });
+  }, []);
+
+  const generateShoppingListFromPlan = useCallback(
+    (dates: string[], scale: PlanScale) => {
+      const items = aggregateMealPlanToShoppingItems(mealPlan, dates, recipesById);
+      setShoppingItems(items);
+      setShoppingScaleState(scale);
+      scheduleShoppingReminder(profile.giornoSpesa, reminderIdRef.current).then((id) => {
+        reminderIdRef.current = id;
+        setShoppingReminderId(id);
+      });
+      return items.length;
+    },
+    [mealPlan, recipesById, profile.giornoSpesa]
+  );
+
   const value = useMemo(
     () => ({
       loaded,
@@ -166,8 +217,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setWorkoutSelection,
       lastWorkoutLog,
       logWorkoutToday,
+      mealPlan,
+      setMealPlanEntry,
+      generateShoppingListFromPlan,
     }),
-    [loaded, profile, updateProfile, toggleListMember, shoppingScale, setShoppingScale, shoppingItems, toggleShoppingItem, resetShoppingListForScale, analysisValues, updateAnalysisValue, workoutSelection, setWorkoutSelection, lastWorkoutLog, logWorkoutToday]
+    [
+      loaded, profile, updateProfile, toggleListMember, shoppingScale, setShoppingScale, shoppingItems,
+      toggleShoppingItem, resetShoppingListForScale, analysisValues, updateAnalysisValue, workoutSelection,
+      setWorkoutSelection, lastWorkoutLog, logWorkoutToday, mealPlan, setMealPlanEntry, generateShoppingListFromPlan,
+    ]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
