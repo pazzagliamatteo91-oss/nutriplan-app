@@ -6,7 +6,8 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { colors, fonts, radii, spacing } from '../theme';
 import { Avatar } from '../components/Avatar';
 import { Card } from '../components/Card';
-import { Icon, IconName } from '../components/Icon';
+import { Icon } from '../components/Icon';
+import { ColorIcon, ColorIconName } from '../components/ColorIcon';
 import { useApp } from '../context/AppContext';
 import { RECIPES } from '../data/recipes';
 import { visibleRecipes } from '../data/recipeFilters';
@@ -20,7 +21,7 @@ function formatToday() {
 type Tile = {
   key: keyof RootTabParamList;
   title: string;
-  icon: IconName;
+  icon: ColorIconName;
   stat: string;
 };
 
@@ -72,7 +73,7 @@ export function HomeScreen() {
           {tiles.map((tile) => (
             <Card key={tile.key} style={styles.tile} onPress={() => navigation.navigate(tile.key)}>
               <View style={styles.tileIcon}>
-                <Icon name={tile.icon} size={22} color={colors.accent} />
+                <ColorIcon name={tile.icon} size={34} />
               </View>
               <Text style={styles.tileTitle}>{tile.title}</Text>
               <Text style={styles.tileStat}>{tile.stat}</Text>
@@ -156,12 +157,6 @@ const styles = StyleSheet.create({
     minHeight: 120,
   },
   tileIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.md,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: spacing.sm,
   },
   tileTitle: {

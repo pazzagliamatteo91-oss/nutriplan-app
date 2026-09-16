@@ -9,7 +9,7 @@ import { WorkoutLevel } from '../data/types';
 const STORAGE_KEY = '@nutriplan/state/v1';
 
 export const DEFAULT_PROFILE: UserProfile = {
-  nome: 'Alex',
+  nome: 'Matteo',
   avatarUri: null,
   avatarIcon: null,
   eta: 32,

@@ -3,7 +3,7 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { RootTabParamList } from './types';
 import { colors } from '../theme';
-import { Icon, IconName } from '../components/Icon';
+import { ColorIcon, ColorIconName } from '../components/ColorIcon';
 import { HomeScreen } from '../screens/HomeScreen';
 import { RecipesNavigator } from './RecipesNavigator';
 import { ShoppingScreen } from '../screens/ShoppingScreen';
@@ -13,13 +13,13 @@ import { ProfileScreen } from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
+const TAB_ICONS: Record<keyof RootTabParamList, ColorIconName> = {
   HomeTab: 'home',
   RicetteTab: 'recipes',
   SpesaTab: 'shopping',
   AnalisiTab: 'analysis',
   AllenamentoTab: 'workout',
-  ProfiloTab: 'profile',
+  ProfiloTab: 'avocado',
 };
 
 const navTheme = {
@@ -51,8 +51,8 @@ export function RootNavigator() {
           tabBarActiveTintColor: colors.accent,
           tabBarInactiveTintColor: colors.textFaint,
           tabBarLabelStyle: { fontSize: 11, fontFamily: 'Inter_500Medium' },
-          tabBarIcon: ({ color, size }) => (
-            <Icon name={TAB_ICONS[route.name as keyof RootTabParamList]} color={color} size={size ? size - 2 : 20} />
+          tabBarIcon: ({ focused, size }) => (
+            <ColorIcon name={TAB_ICONS[route.name as keyof RootTabParamList]} focused={focused} size={size ? size + 2 : 24} />
           ),
         })}
       >

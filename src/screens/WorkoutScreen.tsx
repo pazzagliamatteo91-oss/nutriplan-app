@@ -15,10 +15,13 @@ function sportLabel(sportId: string) {
   return MAIN_SPORTS.find((s) => s.id === sportId)?.label ?? sportId;
 }
 
+type SessionKind = 'specifico' | 'supporto';
+
 export function WorkoutScreen() {
   const { profile, updateProfile, workoutSelection, setWorkoutSelection, lastWorkoutLog, logWorkoutToday } = useApp();
   const [extendedOpen, setExtendedOpen] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
+  const [dayTab, setDayTab] = useState<Record<string, SessionKind>>({});
   const { sportId, livello } = workoutSelection;
 
   const weekPlan = useMemo(() => generateWeekPlan(sportId, livello), [sportId, livello]);
@@ -92,31 +95,51 @@ export function WorkoutScreen() {
         </View>
 
         <Text style={styles.sectionTitle}>Scheda della settimana — {sportLabel(sportId)} · {livello}</Text>
-        <Text style={styles.sectionSubtitle}>Sincronizzata da una libreria di allenamenti online · tocca un giorno per vedere gli esercizi</Text>
+        <Text style={styles.sectionSubtitle}>Tocca un giorno per vedere gli esercizi, o Specifico/Supporto per cambiare sessione</Text>
         <Card style={styles.weekCard}>
           {weekPlan.map((day, idx) => {
             const isExpanded = expandedDay === day.giorno;
-            const canExpand = day.esercizi.length > 0;
+            const activeTab = dayTab[day.giorno] ?? 'specifico';
+            const session = activeTab === 'specifico' ? day.specifico : day.supporto;
             return (
               <View key={day.giorno} style={[styles.dayBlock, idx === weekPlan.length - 1 && { borderBottomWidth: 0 }]}>
                 <Pressable
                   style={styles.dayRow}
-                  disabled={!canExpand}
+                  disabled={day.isRiposo}
                   onPress={() => setExpandedDay((prev) => (prev === day.giorno ? null : day.giorno))}
                 >
                   <Text style={styles.dayName}>{day.giorno}</Text>
-                  <View style={styles.dayInfo}>
-                    <Text style={[styles.dayType, day.tipo === 'Riposo' && { color: colors.textFaint }]}>{day.tipo}</Text>
-                    <Text style={styles.dayDesc} numberOfLines={1}>{day.descrizione}</Text>
-                  </View>
-                  {day.durataMinuti > 0 && <Text style={styles.dayDuration}>{day.durataMinuti} min</Text>}
-                  {canExpand && (
-                    <Icon name={isExpanded ? 'chevronDown' : 'chevronRight'} size={16} color={colors.textFaint} />
+                  {day.isRiposo ? (
+                    <View style={styles.dayInfo}>
+                      <Text style={[styles.dayType, { color: colors.textFaint }]}>Riposo</Text>
+                      <Text style={styles.dayDesc}>Recupero attivo o riposo completo</Text>
+                    </View>
+                  ) : (
+                    <View style={styles.dayContent}>
+                      <View style={styles.dayToggle}>
+                        <Pressable
+                          style={[styles.dayToggleBtn, activeTab === 'specifico' && styles.dayToggleBtnActive]}
+                          onPress={() => setDayTab((prev) => ({ ...prev, [day.giorno]: 'specifico' }))}
+                        >
+                          <Text style={[styles.dayToggleLabel, activeTab === 'specifico' && styles.dayToggleLabelActive]}>Specifico</Text>
+                        </Pressable>
+                        <Pressable
+                          style={[styles.dayToggleBtn, activeTab === 'supporto' && styles.dayToggleBtnActive]}
+                          onPress={() => setDayTab((prev) => ({ ...prev, [day.giorno]: 'supporto' }))}
+                        >
+                          <Text style={[styles.dayToggleLabel, activeTab === 'supporto' && styles.dayToggleLabelActive]}>Supporto</Text>
+                        </Pressable>
+                      </View>
+                      <View style={styles.dayContentRight}>
+                        <Text style={styles.dayDuration}>{session.durataMinuti} min</Text>
+                        <Icon name={isExpanded ? 'chevronDown' : 'chevronRight'} size={16} color={colors.textFaint} />
+                      </View>
+                    </View>
                   )}
                 </Pressable>
-                {isExpanded && (
+                {isExpanded && !day.isRiposo && (
                   <View style={styles.dayExercises}>
-                    {day.esercizi.map((ex) => (
+                    {session.esercizi.map((ex) => (
                       <View key={ex.nome} style={styles.exerciseRow}>
                         <Text style={styles.exerciseName}>{ex.nome}</Text>
                         <Text style={styles.exerciseDettaglio}>{ex.dettaglio}</Text>
@@ -229,12 +252,19 @@ const styles = StyleSheet.create({
   dayRow: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: spacing.sm,
   },
-  dayName: { width: 78, fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.text },
+  dayName: { width: 70, fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.text },
   dayInfo: { flex: 1 },
   dayType: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.accent },
   dayDesc: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted },
+  dayContent: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  dayToggle: { flexDirection: 'row', backgroundColor: colors.background, borderRadius: radii.pill, padding: 2 },
+  dayToggleBtn: { paddingVertical: 5, paddingHorizontal: 9, borderRadius: radii.pill },
+  dayToggleBtnActive: { backgroundColor: colors.accent },
+  dayToggleLabel: { fontFamily: fonts.bodyMedium, fontSize: 11, color: colors.textMuted },
+  dayToggleLabelActive: { color: colors.accentText },
+  dayContentRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dayDuration: { fontFamily: fonts.body, fontSize: 12, color: colors.textFaint },
-  dayExercises: { paddingBottom: spacing.sm, paddingLeft: 78 + spacing.sm },
+  dayExercises: { paddingBottom: spacing.sm, paddingLeft: 70 + spacing.sm },
   exerciseRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4,
   },

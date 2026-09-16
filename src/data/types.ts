@@ -65,10 +65,9 @@ export type Exercise = {
 
 export type WorkoutDay = {
   giorno: string;
-  tipo: WorkoutSessionType | 'Riposo';
-  descrizione: string;
-  durataMinuti: number;
-  esercizi: Exercise[];
+  isRiposo: boolean;
+  specifico: { descrizione: string; durataMinuti: number; esercizi: Exercise[] };
+  supporto: { descrizione: string; durataMinuti: number; esercizi: Exercise[] };
 };
 
 export type ShoppingItem = {

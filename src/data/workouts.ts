@@ -242,28 +242,31 @@ function totalMinutes(esercizi: Exercise[]): number {
   return Math.max(20, esercizi.length * 6);
 }
 
-// Scheda dettagliata giorno per giorno, con esercizi concreti: presentata come
-// sincronizzata da una libreria di allenamenti online (da collegare a un
-// servizio/API reale in produzione).
+// Scheda dettagliata giorno per giorno: ogni giorno di allenamento porta con sé
+// sia la sessione Specifico sia quella Supporto, così l'utente può passare
+// dall'una all'altra per lo stesso giorno invece di vederne solo una.
 export function generateWeekPlan(sportId: string, level: WorkoutLevel): WorkoutDay[] {
   const { sessioniSettimana } = LEVEL_INTENSITY[level];
-  const specifico = specificoLabel(sportId);
-  const supporto = supportoLabel(sportId);
+  const specificoDesc = specificoLabel(sportId);
+  const supportoDesc = supportoLabel(sportId);
 
   return WEEKDAYS.map((giorno, index) => {
     const isTrainingDay = index % Math.ceil(7 / sessioniSettimana) === 0 && index < 7;
     if (!isTrainingDay) {
-      return { giorno, tipo: 'Riposo', descrizione: 'Recupero attivo o riposo completo', durataMinuti: 0, esercizi: [] };
+      return {
+        giorno,
+        isRiposo: true,
+        specifico: { descrizione: 'Recupero attivo o riposo completo', durataMinuti: 0, esercizi: [] },
+        supporto: { descrizione: 'Recupero attivo o riposo completo', durataMinuti: 0, esercizi: [] },
+      };
     }
-    const isSupporto = index % 4 === 3;
-    const tipo = isSupporto ? 'Supporto' : 'Specifico';
-    const esercizi = getSessionExercises(sportId, level, tipo);
+    const specificoEsercizi = getSessionExercises(sportId, level, 'Specifico');
+    const supportoEsercizi = getSessionExercises(sportId, level, 'Supporto');
     return {
       giorno,
-      tipo,
-      descrizione: isSupporto ? supporto : specifico,
-      durataMinuti: totalMinutes(esercizi),
-      esercizi,
+      isRiposo: false,
+      specifico: { descrizione: specificoDesc, durataMinuti: totalMinutes(specificoEsercizi), esercizi: specificoEsercizi },
+      supporto: { descrizione: supportoDesc, durataMinuti: totalMinutes(supportoEsercizi), esercizi: supportoEsercizi },
     };
   });
 }
