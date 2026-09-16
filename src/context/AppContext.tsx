@@ -1,0 +1,182 @@
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { UserProfile, AnalysisValue, ShoppingItem } from '../data/types';
+import { generateMockAnalysis, noteForValue } from '../data/analysisParams';
+import { generateShoppingList, ShoppingScale } from '../data/shopping';
+import { WEEKDAYS } from '../data/constants';
+import { WorkoutLevel } from '../data/types';
+
+const STORAGE_KEY = '@nutriplan/state/v1';
+
+export const DEFAULT_PROFILE: UserProfile = {
+  nome: 'Alex',
+  avatarUri: null,
+  avatarIcon: null,
+  eta: 32,
+  pesoKg: 72,
+  altezzaCm: 175,
+  kcalGiorno: 2200,
+  proteineGiorno: 120,
+  stileVita: 'Attivo',
+  obiettivo: 'Mantenere peso',
+  intolleranze: ['lattosio'],
+  allergie: [],
+  cucinePreferite: ['mediterranea', 'giapponese'],
+  restrizioni: [],
+  sportPreferiti: ['corsa', 'palestra'],
+  giornoSpesa: 'Sabato',
+  dispositivi: { garmin: true, apple_watch: false, amazfit: false },
+};
+
+type WorkoutSelection = { sportId: string; livello: WorkoutLevel };
+
+type PersistedState = {
+  profile: UserProfile;
+  shoppingScale: ShoppingScale;
+  shoppingItems: ShoppingItem[];
+  analysisValues: AnalysisValue[];
+  workoutSelection: WorkoutSelection;
+  lastWorkoutLog: string | null;
+};
+
+type AppContextValue = {
+  loaded: boolean;
+  profile: UserProfile;
+  updateProfile: (patch: Partial<UserProfile>) => void;
+  toggleListMember: (field: 'intolleranze' | 'allergie' | 'cucinePreferite' | 'restrizioni' | 'sportPreferiti', id: string) => void;
+
+  shoppingScale: ShoppingScale;
+  setShoppingScale: (s: ShoppingScale) => void;
+  shoppingItems: ShoppingItem[];
+  toggleShoppingItem: (id: string) => void;
+  resetShoppingListForScale: (s: ShoppingScale) => void;
+
+  analysisValues: AnalysisValue[];
+  updateAnalysisValue: (id: string, value: number | null) => void;
+
+  workoutSelection: WorkoutSelection;
+  setWorkoutSelection: (sel: WorkoutSelection) => void;
+  lastWorkoutLog: string | null;
+  logWorkoutToday: () => void;
+};
+
+const AppContext = createContext<AppContextValue | null>(null);
+
+export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [loaded, setLoaded] = useState(false);
+  const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
+  const [shoppingScale, setShoppingScaleState] = useState<ShoppingScale>('settimana');
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>(() => generateShoppingList('settimana'));
+  const [analysisValues, setAnalysisValues] = useState<AnalysisValue[]>(() => generateMockAnalysis());
+  const [workoutSelection, setWorkoutSelectionState] = useState<WorkoutSelection>({ sportId: 'corsa', livello: 'Intermedio' });
+  const [lastWorkoutLog, setLastWorkoutLog] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed: PersistedState = JSON.parse(raw);
+          setProfile({ ...DEFAULT_PROFILE, ...parsed.profile });
+          setShoppingScaleState(parsed.shoppingScale ?? 'settimana');
+          setShoppingItems(parsed.shoppingItems ?? generateShoppingList('settimana'));
+          setAnalysisValues(parsed.analysisValues ?? generateMockAnalysis());
+          setWorkoutSelectionState(parsed.workoutSelection ?? { sportId: 'corsa', livello: 'Intermedio' });
+          setLastWorkoutLog(parsed.lastWorkoutLog ?? null);
+        }
+      } catch {
+        // dati mock: se la lettura fallisce si riparte dai default
+      } finally {
+        setLoaded(true);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    const state: PersistedState = { profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, lastWorkoutLog };
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
+  }, [loaded, profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, lastWorkoutLog]);
+
+  const updateProfile = useCallback((patch: Partial<UserProfile>) => {
+    setProfile((p) => ({ ...p, ...patch }));
+  }, []);
+
+  const toggleListMember = useCallback(
+    (field: 'intolleranze' | 'allergie' | 'cucinePreferite' | 'restrizioni' | 'sportPreferiti', id: string) => {
+      setProfile((p) => {
+        const list = p[field];
+        const next = list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
+        return { ...p, [field]: next };
+      });
+    },
+    []
+  );
+
+  const setShoppingScale = useCallback((s: ShoppingScale) => {
+    setShoppingScaleState(s);
+    setShoppingItems((prev) => {
+      const fresh = generateShoppingList(s);
+      const checkedIds = new Set(prev.filter((i) => i.spuntato).map((i) => i.id));
+      return fresh.map((i) => (checkedIds.has(i.id) ? { ...i, spuntato: true } : i));
+    });
+  }, []);
+
+  const resetShoppingListForScale = useCallback((s: ShoppingScale) => {
+    setShoppingItems(generateShoppingList(s));
+  }, []);
+
+  const toggleShoppingItem = useCallback((id: string) => {
+    setShoppingItems((prev) => prev.map((i) => (i.id === id ? { ...i, spuntato: !i.spuntato } : i)));
+  }, []);
+
+  const updateAnalysisValue = useCallback((id: string, value: number | null) => {
+    setAnalysisValues((prev) =>
+      prev.map((a) => {
+        if (a.id !== id) return a;
+        if (value === null) return { ...a, valore: null, stato: 'manuale', nota: '' };
+        const { stato, nota } = noteForValue(id, value);
+        return { ...a, valore: value, stato, nota };
+      })
+    );
+  }, []);
+
+  const setWorkoutSelection = useCallback((sel: WorkoutSelection) => {
+    setWorkoutSelectionState(sel);
+  }, []);
+
+  const logWorkoutToday = useCallback(() => {
+    setLastWorkoutLog(new Date().toISOString());
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      loaded,
+      profile,
+      updateProfile,
+      toggleListMember,
+      shoppingScale,
+      setShoppingScale,
+      shoppingItems,
+      toggleShoppingItem,
+      resetShoppingListForScale,
+      analysisValues,
+      updateAnalysisValue,
+      workoutSelection,
+      setWorkoutSelection,
+      lastWorkoutLog,
+      logWorkoutToday,
+    }),
+    [loaded, profile, updateProfile, toggleListMember, shoppingScale, setShoppingScale, shoppingItems, toggleShoppingItem, resetShoppingListForScale, analysisValues, updateAnalysisValue, workoutSelection, setWorkoutSelection, lastWorkoutLog, logWorkoutToday]
+  );
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+}
+
+export function useApp() {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error('useApp deve essere usato dentro AppProvider');
+  return ctx;
+}
+
+export { WEEKDAYS };
