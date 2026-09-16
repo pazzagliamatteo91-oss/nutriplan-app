@@ -58,11 +58,17 @@ export type WorkoutLevel = 'Base' | 'Intermedio' | 'Avanzato' | 'Agonista';
 
 export type WorkoutSessionType = 'Specifico' | 'Supporto';
 
+export type Exercise = {
+  nome: string;
+  dettaglio: string;
+};
+
 export type WorkoutDay = {
   giorno: string;
   tipo: WorkoutSessionType | 'Riposo';
   descrizione: string;
   durataMinuti: number;
+  esercizi: Exercise[];
 };
 
 export type ShoppingItem = {

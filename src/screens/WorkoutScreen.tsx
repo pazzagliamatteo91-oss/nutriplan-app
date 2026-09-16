@@ -8,7 +8,7 @@ import { Icon, IconName } from '../components/Icon';
 import { Button } from '../components/Button';
 import { useApp } from '../context/AppContext';
 import { MAIN_SPORTS, EXTENDED_SPORTS, DEVICE_TYPES } from '../data/constants';
-import { WORKOUT_LEVELS, SPORT_ICONS, specificoLabel, supportoLabel, generateWeekPlan } from '../data/workouts';
+import { WORKOUT_LEVELS, SPORT_ICONS, specificoLabel, supportoLabel, generateWeekPlan, getSessionExercises } from '../data/workouts';
 import { WorkoutLevel } from '../data/types';
 
 function sportLabel(sportId: string) {
@@ -18,9 +18,12 @@ function sportLabel(sportId: string) {
 export function WorkoutScreen() {
   const { profile, updateProfile, workoutSelection, setWorkoutSelection, lastWorkoutLog, logWorkoutToday } = useApp();
   const [extendedOpen, setExtendedOpen] = useState(false);
+  const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const { sportId, livello } = workoutSelection;
 
   const weekPlan = useMemo(() => generateWeekPlan(sportId, livello), [sportId, livello]);
+  const specificoEsercizi = useMemo(() => getSessionExercises(sportId, livello, 'Specifico'), [sportId, livello]);
+  const supportoEsercizi = useMemo(() => getSessionExercises(sportId, livello, 'Supporto'), [sportId, livello]);
   const icon: IconName = SPORT_ICONS[sportId] ?? 'workout';
 
   const setSport = (id: string) => setWorkoutSelection({ sportId: id, livello });
@@ -65,30 +68,65 @@ export function WorkoutScreen() {
               <Icon name={icon} size={20} color={colors.accentText} />
             </View>
             <Text style={styles.sessionTitle}>Specifico</Text>
-            <Text style={styles.sessionDesc}>{specificoLabel(sportId)}</Text>
+            <Text style={styles.sessionSubtitle}>{specificoLabel(sportId)}</Text>
+            {specificoEsercizi.slice(0, 3).map((ex) => (
+              <View key={ex.nome} style={styles.exerciseRow}>
+                <Text style={styles.exerciseName} numberOfLines={1}>{ex.nome}</Text>
+                <Text style={styles.exerciseDettaglio}>{ex.dettaglio}</Text>
+              </View>
+            ))}
           </Card>
           <Card style={styles.sessionCard} variant="panelAlt">
             <View style={[styles.sessionIconWrap, { backgroundColor: colors.accent }]}>
               <Icon name="gym" size={20} color={colors.accentText} />
             </View>
             <Text style={styles.sessionTitle}>Supporto</Text>
-            <Text style={styles.sessionDesc}>{supportoLabel(sportId)}</Text>
+            <Text style={styles.sessionSubtitle}>{supportoLabel(sportId)}</Text>
+            {supportoEsercizi.slice(0, 3).map((ex) => (
+              <View key={ex.nome} style={styles.exerciseRow}>
+                <Text style={styles.exerciseName} numberOfLines={1}>{ex.nome}</Text>
+                <Text style={styles.exerciseDettaglio}>{ex.dettaglio}</Text>
+              </View>
+            ))}
           </Card>
         </View>
 
         <Text style={styles.sectionTitle}>Scheda della settimana — {sportLabel(sportId)} · {livello}</Text>
-        <Text style={styles.sectionSubtitle}>Sincronizzata da una libreria di allenamenti online</Text>
+        <Text style={styles.sectionSubtitle}>Sincronizzata da una libreria di allenamenti online · tocca un giorno per vedere gli esercizi</Text>
         <Card style={styles.weekCard}>
-          {weekPlan.map((day, idx) => (
-            <View key={day.giorno} style={[styles.dayRow, idx === weekPlan.length - 1 && { borderBottomWidth: 0 }]}>
-              <Text style={styles.dayName}>{day.giorno}</Text>
-              <View style={styles.dayInfo}>
-                <Text style={[styles.dayType, day.tipo === 'Riposo' && { color: colors.textFaint }]}>{day.tipo}</Text>
-                <Text style={styles.dayDesc} numberOfLines={1}>{day.descrizione}</Text>
+          {weekPlan.map((day, idx) => {
+            const isExpanded = expandedDay === day.giorno;
+            const canExpand = day.esercizi.length > 0;
+            return (
+              <View key={day.giorno} style={[styles.dayBlock, idx === weekPlan.length - 1 && { borderBottomWidth: 0 }]}>
+                <Pressable
+                  style={styles.dayRow}
+                  disabled={!canExpand}
+                  onPress={() => setExpandedDay((prev) => (prev === day.giorno ? null : day.giorno))}
+                >
+                  <Text style={styles.dayName}>{day.giorno}</Text>
+                  <View style={styles.dayInfo}>
+                    <Text style={[styles.dayType, day.tipo === 'Riposo' && { color: colors.textFaint }]}>{day.tipo}</Text>
+                    <Text style={styles.dayDesc} numberOfLines={1}>{day.descrizione}</Text>
+                  </View>
+                  {day.durataMinuti > 0 && <Text style={styles.dayDuration}>{day.durataMinuti} min</Text>}
+                  {canExpand && (
+                    <Icon name={isExpanded ? 'chevronDown' : 'chevronRight'} size={16} color={colors.textFaint} />
+                  )}
+                </Pressable>
+                {isExpanded && (
+                  <View style={styles.dayExercises}>
+                    {day.esercizi.map((ex) => (
+                      <View key={ex.nome} style={styles.exerciseRow}>
+                        <Text style={styles.exerciseName}>{ex.nome}</Text>
+                        <Text style={styles.exerciseDettaglio}>{ex.dettaglio}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
               </View>
-              {day.durataMinuti > 0 && <Text style={styles.dayDuration}>{day.durataMinuti} min</Text>}
-            </View>
-          ))}
+            );
+          })}
         </Card>
 
         <Button
@@ -181,19 +219,27 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm,
   },
   sessionTitle: { fontFamily: fonts.heading, fontSize: 15, color: colors.text, marginBottom: 4 },
-  sessionDesc: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted },
+  sessionSubtitle: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginBottom: spacing.sm },
   sectionTitle: { fontFamily: fonts.heading, fontSize: 16, color: colors.text, marginBottom: 2 },
   sectionSubtitle: { fontFamily: fonts.body, fontSize: 12, color: colors.textFaint, marginBottom: spacing.sm },
   weekCard: { marginBottom: spacing.lg, paddingVertical: 4 },
+  dayBlock: {
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border,
+  },
   dayRow: {
-    flexDirection: 'row', alignItems: 'center', paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, gap: spacing.sm,
+    flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: spacing.sm,
   },
   dayName: { width: 78, fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.text },
   dayInfo: { flex: 1 },
   dayType: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.accent },
   dayDesc: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted },
   dayDuration: { fontFamily: fonts.body, fontSize: 12, color: colors.textFaint },
+  dayExercises: { paddingBottom: spacing.sm, paddingLeft: 78 + spacing.sm },
+  exerciseRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4,
+  },
+  exerciseName: { flex: 1, fontFamily: fonts.body, fontSize: 12, color: colors.text, marginRight: spacing.sm },
+  exerciseDettaglio: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.accent },
   devicesCard: { marginBottom: spacing.lg, paddingVertical: 4 },
   deviceRow: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 12,
