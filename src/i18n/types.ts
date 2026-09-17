@@ -151,6 +151,41 @@ export type Locale = {
     exportedTitle: string;
     exportedBody: string; // {label}
   };
+  onboarding: {
+    stepOf: string; // {n} {t}
+    continueButton: string;
+    backButton: string;
+    skipAll: string;
+    startButton: string;
+    welcomeTitle: string;
+    welcomeSubtitle: string;
+    nameQuestion: string;
+    namePlaceholder: string;
+    goalTitle: string;
+    goalSubtitle: string;
+    lifestyleTitle: string;
+    lifestyleSubtitle: string;
+    cuisinesTitle: string;
+    cuisinesSubtitle: string;
+    restrictionsTitle: string;
+    restrictionsSubtitle: string;
+    intolerancesTitle: string;
+    intolerancesSubtitle: string;
+    allergiesTitle: string;
+    allergiesSubtitle: string;
+    sportsTitle: string;
+    sportsSubtitle: string;
+    shoppingDayTitle: string;
+    shoppingDaySubtitle: string;
+    summaryTitle: string; // {n}
+    summarySubtitle: string;
+    summaryGoalLabel: string;
+    summaryLifestyleLabel: string;
+    summaryCuisinesLabel: string;
+    summarySportsLabel: string;
+    summaryShoppingDayLabel: string;
+    noneSelected: string;
+  };
   weekdays: OptionDict;
   cuisines: OptionDict;
   dietTags: OptionDict;

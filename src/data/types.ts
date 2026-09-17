@@ -46,6 +46,7 @@ export type UserProfile = {
   sportPreferiti: string[];
   giornoSpesa: string;
   dispositivi: Record<string, boolean>;
+  onboardingCompletato: boolean;
 };
 
 export type AnalysisStatus = 'basso' | 'normale' | 'alto' | 'manuale';

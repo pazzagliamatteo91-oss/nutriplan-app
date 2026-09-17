@@ -16,11 +16,18 @@ import {
   Inter_600SemiBold,
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
-import { AppProvider } from './src/context/AppContext';
+import { AppProvider, useApp } from './src/context/AppContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { colors } from './src/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+function AppContent() {
+  const { loaded, profile } = useApp();
+  if (!loaded) return null;
+  return profile.onboardingCompletato ? <RootNavigator /> : <OnboardingScreen />;
+}
 
 export default function App() {
   const [frauncesLoaded] = useFrauncesFonts({
@@ -51,7 +58,7 @@ export default function App() {
     <SafeAreaProvider>
       <View style={{ flex: 1, backgroundColor: colors.background }} onLayout={onLayout}>
         <AppProvider>
-          <RootNavigator />
+          <AppContent />
         </AppProvider>
         <StatusBar style="light" />
       </View>

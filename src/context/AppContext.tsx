@@ -30,6 +30,7 @@ export const DEFAULT_PROFILE: UserProfile = {
   sportPreferiti: ['corsa', 'palestra'],
   giornoSpesa: 'Sabato',
   dispositivi: { garmin: true, apple_watch: false, amazfit: false },
+  onboardingCompletato: false,
 };
 
 type WorkoutSelection = { sportId: string; livello: WorkoutLevel };
@@ -100,7 +101,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed: PersistedState = JSON.parse(raw);
-          setProfile({ ...DEFAULT_PROFILE, ...parsed.profile });
+          // Chi aveva già uno stato salvato prima dell'introduzione dell'onboarding
+          // non deve rivederlo: il flag manca solo per chi ha già usato l'app.
+          const onboardingCompletato = parsed.profile?.onboardingCompletato ?? true;
+          setProfile({ ...DEFAULT_PROFILE, ...parsed.profile, onboardingCompletato });
           setShoppingScaleState(parsed.shoppingScale ?? 'settimana');
           setShoppingItems(parsed.shoppingItems ?? generateShoppingList('settimana'));
           setAnalysisValues(parsed.analysisValues ?? generateMockAnalysis());
