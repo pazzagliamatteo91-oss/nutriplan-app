@@ -13,7 +13,7 @@ import { RECIPES } from '../data/recipes';
 import { visibleRecipes } from '../data/recipeFilters';
 import { MEAL_TYPES } from '../data/constants';
 import { datesForScale, formatDateLabel, PlanScale } from '../data/mealPlan';
-import { INTL_LOCALE } from '../i18n';
+import { INTL_LOCALE, pick } from '../i18n';
 import type { RecipesStackParamList } from '../navigation/types';
 import type { RootTabParamList } from '../navigation/types';
 import type { MealType } from '../data/types';
@@ -114,7 +114,7 @@ export function MealPlanScreen({ navigation }: Props) {
                     <View style={{ flex: 1 }}>
                       <Text style={styles.mealLabel}>{locale.mealTypes[meal.id] ?? meal.label}</Text>
                       <Text style={styles.mealValue} numberOfLines={1}>
-                        {recipe ? recipe.nome : t('mealPlan.noRecipe')}
+                        {recipe ? pick(recipe.nome, language) : t('mealPlan.noRecipe')}
                       </Text>
                     </View>
                     {recipe ? (

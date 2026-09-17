@@ -1,6 +1,6 @@
 import { IconName } from '../components/Icon';
-import { WorkoutDay, WorkoutLevel, Exercise } from './types';
-import { WEEKDAYS } from './constants';
+import { WorkoutDay, WorkoutLevel, Exercise, Bilingual, bi } from './types';
+import { WEEKDAYS, sportDisplayName } from './constants';
 
 export const WORKOUT_LEVELS: WorkoutLevel[] = ['Base', 'Intermedio', 'Avanzato', 'Agonista'];
 
@@ -14,24 +14,24 @@ export const SPORT_ICONS: Record<string, IconName> = {
   calcio: 'soccer',
 };
 
-const SPECIFICO_LABELS: Record<string, string> = {
-  corsa: 'Sessione tecnica di corsa',
-  ciclismo: 'Uscita con variazioni di ritmo',
-  nuoto: 'Sessione tecnica in vasca',
-  tennis: 'Sessione tecnica su campo',
-  palestra: 'Scheda di forza',
-  yoga: 'Sequenza di asana',
-  calcio: 'Sessione tecnico-tattica',
+const SPECIFICO_LABELS: Record<string, Bilingual> = {
+  corsa: bi('Sessione tecnica di corsa', 'Running technical session'),
+  ciclismo: bi('Uscita con variazioni di ritmo', 'Ride with pace variations'),
+  nuoto: bi('Sessione tecnica in vasca', 'Technical pool session'),
+  tennis: bi('Sessione tecnica su campo', 'On-court technical session'),
+  palestra: bi('Scheda di forza', 'Strength program'),
+  yoga: bi('Sequenza di asana', 'Asana sequence'),
+  calcio: bi('Sessione tecnico-tattica', 'Technical-tactical session'),
 };
 
-const SUPPORTO_LABELS: Record<string, string> = {
-  corsa: 'Rinforzo e mobilità',
-  ciclismo: 'Forza per gambe e core',
-  nuoto: 'Mobilità e potenziamento a secco',
-  tennis: 'Cardio e reattività',
-  palestra: 'Cardio complementare',
-  yoga: 'Camminata e respirazione',
-  calcio: 'Cardio e prevenzione infortuni',
+const SUPPORTO_LABELS: Record<string, Bilingual> = {
+  corsa: bi('Rinforzo e mobilità', 'Strengthening and mobility'),
+  ciclismo: bi('Forza per gambe e core', 'Strength for legs and core'),
+  nuoto: bi('Mobilità e potenziamento a secco', 'Dryland mobility and conditioning'),
+  tennis: bi('Cardio e reattività', 'Cardio and reactivity'),
+  palestra: bi('Cardio complementare', 'Complementary cardio'),
+  yoga: bi('Camminata e respirazione', 'Walking and breathing'),
+  calcio: bi('Cardio e prevenzione infortuni', 'Cardio and injury prevention'),
 };
 
 // --- Esercizi -----------------------------------------------------------
@@ -39,11 +39,11 @@ const SUPPORTO_LABELS: Record<string, string> = {
 // scalati per livello con LEVEL_FACTORS, per evitare di scrivere a mano 4
 // varianti per ognuno dei ~70 esercizi dei pool sport-specifici.
 type ExerciseSpec =
-  | { nome: string; kind: 'reps'; serie: number; ripetizioni: number; perLato?: boolean }
-  | { nome: string; kind: 'time'; serie: number; secondi: number; perLato?: boolean }
-  | { nome: string; kind: 'duration'; minuti: number }
-  | { nome: string; kind: 'count'; conteggio: number }
-  | { nome: string; kind: 'fixed'; dettaglio: string };
+  | { nome: Bilingual; kind: 'reps'; serie: number; ripetizioni: number; perLato?: boolean }
+  | { nome: Bilingual; kind: 'time'; serie: number; secondi: number; perLato?: boolean }
+  | { nome: Bilingual; kind: 'duration'; minuti: number }
+  | { nome: Bilingual; kind: 'count'; conteggio: number }
+  | { nome: Bilingual; kind: 'fixed'; dettaglio: Bilingual };
 
 type LevelFactors = { serie: number; ripetizioni: number; secondi: number; minuti: number };
 
@@ -64,20 +64,24 @@ function formatExercise(spec: ExerciseSpec, level: WorkoutLevel): Exercise {
     case 'reps': {
       const serie = roundTo(spec.serie * f.serie, 1, 2);
       const rip = roundTo(spec.ripetizioni * f.ripetizioni, 1, 6);
-      return { nome: spec.nome, dettaglio: `${serie}x${rip}${spec.perLato ? ' per lato' : ''}` };
+      const suffixIt = spec.perLato ? ' per lato' : '';
+      const suffixEn = spec.perLato ? ' per side' : '';
+      return { nome: spec.nome, dettaglio: bi(`${serie}x${rip}${suffixIt}`, `${serie}x${rip}${suffixEn}`) };
     }
     case 'time': {
       const serie = roundTo(spec.serie * f.serie, 1, 2);
       const sec = roundTo(spec.secondi * f.secondi, 5, 15);
-      return { nome: spec.nome, dettaglio: `${serie}x${sec}s${spec.perLato ? ' per lato' : ''}` };
+      const suffixIt = spec.perLato ? ' per lato' : '';
+      const suffixEn = spec.perLato ? ' per side' : '';
+      return { nome: spec.nome, dettaglio: bi(`${serie}x${sec}s${suffixIt}`, `${serie}x${sec}s${suffixEn}`) };
     }
     case 'duration': {
       const min = roundTo(spec.minuti * f.minuti, 5, 5);
-      return { nome: spec.nome, dettaglio: `${min} min` };
+      return { nome: spec.nome, dettaglio: bi(`${min} min`, `${min} min`) };
     }
     case 'count': {
       const conteggio = roundTo(spec.conteggio * f.ripetizioni, 1, 3);
-      return { nome: spec.nome, dettaglio: `${conteggio}x` };
+      return { nome: spec.nome, dettaglio: bi(`${conteggio}x`, `${conteggio}x`) };
     }
     case 'fixed':
       return { nome: spec.nome, dettaglio: spec.dettaglio };
@@ -89,109 +93,109 @@ type SportPools = { specifico: ExerciseSpec[]; supporto: ExerciseSpec[] };
 const SPORT_POOLS: Record<string, SportPools> = {
   corsa: {
     specifico: [
-      { nome: 'Riscaldamento corsa leggera', kind: 'duration', minuti: 10 },
-      { nome: 'Ripetute 400m a ritmo gara', kind: 'count', conteggio: 6 },
-      { nome: 'Recupero tra le ripetute', kind: 'fixed', dettaglio: '90s cammino' },
-      { nome: 'Progressivo a ritmo crescente', kind: 'duration', minuti: 20 },
-      { nome: 'Allunghi 80m in leggera salita', kind: 'count', conteggio: 6 },
-      { nome: 'Defaticamento corsa lenta', kind: 'duration', minuti: 10 },
+      { nome: bi('Riscaldamento corsa leggera', 'Light warm-up run'), kind: 'duration', minuti: 10 },
+      { nome: bi('Ripetute 400m a ritmo gara', '400m repeats at race pace'), kind: 'count', conteggio: 6 },
+      { nome: bi('Recupero tra le ripetute', 'Recovery between repeats'), kind: 'fixed', dettaglio: bi('90s cammino', '90s walk') },
+      { nome: bi('Progressivo a ritmo crescente', 'Progressive run with increasing pace'), kind: 'duration', minuti: 20 },
+      { nome: bi('Allunghi 80m in leggera salita', '80m strides on a slight incline'), kind: 'count', conteggio: 6 },
+      { nome: bi('Defaticamento corsa lenta', 'Slow cool-down run'), kind: 'duration', minuti: 10 },
     ],
     supporto: [
-      { nome: 'Plank', kind: 'time', serie: 3, secondi: 30 },
-      { nome: 'Squat a corpo libero', kind: 'reps', serie: 3, ripetizioni: 15 },
-      { nome: 'Affondi alternati', kind: 'reps', serie: 3, ripetizioni: 12, perLato: true },
-      { nome: 'Hip thrust', kind: 'reps', serie: 3, ripetizioni: 15 },
-      { nome: 'Mobilità anca e caviglia', kind: 'duration', minuti: 8 },
-      { nome: 'Stretching gambe', kind: 'duration', minuti: 8 },
+      { nome: bi('Plank', 'Plank'), kind: 'time', serie: 3, secondi: 30 },
+      { nome: bi('Squat a corpo libero', 'Bodyweight squats'), kind: 'reps', serie: 3, ripetizioni: 15 },
+      { nome: bi('Affondi alternati', 'Alternating lunges'), kind: 'reps', serie: 3, ripetizioni: 12, perLato: true },
+      { nome: bi('Hip thrust', 'Hip thrust'), kind: 'reps', serie: 3, ripetizioni: 15 },
+      { nome: bi('Mobilità anca e caviglia', 'Hip and ankle mobility'), kind: 'duration', minuti: 8 },
+      { nome: bi('Stretching gambe', 'Leg stretching'), kind: 'duration', minuti: 8 },
     ],
   },
   ciclismo: {
     specifico: [
-      { nome: 'Riscaldamento spinning leggero', kind: 'duration', minuti: 15 },
-      { nome: 'Salite a soglia (8 min ciascuna)', kind: 'count', conteggio: 4 },
-      { nome: 'Sprint massimali', kind: 'time', serie: 6, secondi: 30 },
-      { nome: 'Cadenza alta (100+ rpm)', kind: 'duration', minuti: 15 },
-      { nome: 'Uscita a ritmo costante', kind: 'duration', minuti: 60 },
-      { nome: 'Defaticamento pedalata leggera', kind: 'duration', minuti: 10 },
+      { nome: bi('Riscaldamento spinning leggero', 'Light spinning warm-up'), kind: 'duration', minuti: 15 },
+      { nome: bi('Salite a soglia (8 min ciascuna)', 'Threshold climbs (8 min each)'), kind: 'count', conteggio: 4 },
+      { nome: bi('Sprint massimali', 'Maximal sprints'), kind: 'time', serie: 6, secondi: 30 },
+      { nome: bi('Cadenza alta (100+ rpm)', 'High cadence (100+ rpm)'), kind: 'duration', minuti: 15 },
+      { nome: bi('Uscita a ritmo costante', 'Steady-pace ride'), kind: 'duration', minuti: 60 },
+      { nome: bi('Defaticamento pedalata leggera', 'Light cool-down ride'), kind: 'duration', minuti: 10 },
     ],
     supporto: [
-      { nome: 'Squat a corpo libero', kind: 'reps', serie: 3, ripetizioni: 12 },
-      { nome: 'Affondi frontali', kind: 'reps', serie: 3, ripetizioni: 12, perLato: true },
-      { nome: 'Plank laterale', kind: 'time', serie: 3, secondi: 30, perLato: true },
-      { nome: 'Stretching quadricipiti e polpacci', kind: 'duration', minuti: 10 },
+      { nome: bi('Squat a corpo libero', 'Bodyweight squats'), kind: 'reps', serie: 3, ripetizioni: 12 },
+      { nome: bi('Affondi frontali', 'Forward lunges'), kind: 'reps', serie: 3, ripetizioni: 12, perLato: true },
+      { nome: bi('Plank laterale', 'Side plank'), kind: 'time', serie: 3, secondi: 30, perLato: true },
+      { nome: bi('Stretching quadricipiti e polpacci', 'Quad and calf stretching'), kind: 'duration', minuti: 10 },
     ],
   },
   nuoto: {
     specifico: [
-      { nome: 'Riscaldamento misti', kind: 'fixed', dettaglio: '400m' },
-      { nome: 'Serie stile libero 100m', kind: 'count', conteggio: 8 },
-      { nome: 'Tecnica bracciata con tavoletta 50m', kind: 'count', conteggio: 6 },
-      { nome: 'Sprint vasca corta 25m', kind: 'count', conteggio: 4 },
-      { nome: 'Defaticamento a nuoto lento', kind: 'fixed', dettaglio: '200m' },
+      { nome: bi('Riscaldamento misti', 'Warm-up medley'), kind: 'fixed', dettaglio: bi('400m', '400m') },
+      { nome: bi('Serie stile libero 100m', 'Freestyle set 100m'), kind: 'count', conteggio: 8 },
+      { nome: bi('Tecnica bracciata con tavoletta 50m', 'Stroke technique with kickboard 50m'), kind: 'count', conteggio: 6 },
+      { nome: bi('Sprint vasca corta 25m', 'Short-course sprint 25m'), kind: 'count', conteggio: 4 },
+      { nome: bi('Defaticamento a nuoto lento', 'Slow cool-down swim'), kind: 'fixed', dettaglio: bi('200m', '200m') },
     ],
     supporto: [
-      { nome: 'Elastici per spalle', kind: 'reps', serie: 3, ripetizioni: 15 },
-      { nome: 'Plank', kind: 'time', serie: 3, secondi: 40 },
-      { nome: 'Mobilità spalle', kind: 'duration', minuti: 8 },
-      { nome: 'Russian twist', kind: 'reps', serie: 3, ripetizioni: 20 },
+      { nome: bi('Elastici per spalle', 'Shoulder resistance bands'), kind: 'reps', serie: 3, ripetizioni: 15 },
+      { nome: bi('Plank', 'Plank'), kind: 'time', serie: 3, secondi: 40 },
+      { nome: bi('Mobilità spalle', 'Shoulder mobility'), kind: 'duration', minuti: 8 },
+      { nome: bi('Russian twist', 'Russian twist'), kind: 'reps', serie: 3, ripetizioni: 20 },
     ],
   },
   tennis: {
     specifico: [
-      { nome: 'Riscaldamento palleggi', kind: 'duration', minuti: 10 },
-      { nome: 'Dritto e rovescio cross court', kind: 'duration', minuti: 20 },
-      { nome: 'Servizio e risposta', kind: 'duration', minuti: 20 },
-      { nome: 'Punti simulati', kind: 'duration', minuti: 25 },
-      { nome: 'Footwork a scaletta', kind: 'duration', minuti: 8 },
+      { nome: bi('Riscaldamento palleggi', 'Warm-up rallies'), kind: 'duration', minuti: 10 },
+      { nome: bi('Dritto e rovescio cross court', 'Cross-court forehand and backhand'), kind: 'duration', minuti: 20 },
+      { nome: bi('Servizio e risposta', 'Serve and return'), kind: 'duration', minuti: 20 },
+      { nome: bi('Punti simulati', 'Simulated points'), kind: 'duration', minuti: 25 },
+      { nome: bi('Footwork a scaletta', 'Ladder footwork'), kind: 'duration', minuti: 8 },
     ],
     supporto: [
-      { nome: 'Scatti laterali 20m', kind: 'count', conteggio: 5 },
-      { nome: 'Plank con rotazione', kind: 'reps', serie: 3, ripetizioni: 12 },
-      { nome: 'Squat jump', kind: 'reps', serie: 3, ripetizioni: 10 },
-      { nome: 'Stretching spalle e polsi', kind: 'duration', minuti: 8 },
+      { nome: bi('Scatti laterali 20m', '20m lateral sprints'), kind: 'count', conteggio: 5 },
+      { nome: bi('Plank con rotazione', 'Plank with rotation'), kind: 'reps', serie: 3, ripetizioni: 12 },
+      { nome: bi('Squat jump', 'Squat jump'), kind: 'reps', serie: 3, ripetizioni: 10 },
+      { nome: bi('Stretching spalle e polsi', 'Shoulder and wrist stretching'), kind: 'duration', minuti: 8 },
     ],
   },
   palestra: {
     specifico: [
-      { nome: 'Squat', kind: 'reps', serie: 4, ripetizioni: 8 },
-      { nome: 'Panca piana', kind: 'reps', serie: 4, ripetizioni: 8 },
-      { nome: 'Stacco da terra', kind: 'reps', serie: 3, ripetizioni: 6 },
-      { nome: 'Military press', kind: 'reps', serie: 3, ripetizioni: 10 },
-      { nome: 'Trazioni o lat machine', kind: 'reps', serie: 3, ripetizioni: 10 },
+      { nome: bi('Squat', 'Squat'), kind: 'reps', serie: 4, ripetizioni: 8 },
+      { nome: bi('Panca piana', 'Bench press'), kind: 'reps', serie: 4, ripetizioni: 8 },
+      { nome: bi('Stacco da terra', 'Deadlift'), kind: 'reps', serie: 3, ripetizioni: 6 },
+      { nome: bi('Military press', 'Military press'), kind: 'reps', serie: 3, ripetizioni: 10 },
+      { nome: bi('Trazioni o lat machine', 'Pull-ups or lat pulldown'), kind: 'reps', serie: 3, ripetizioni: 10 },
     ],
     supporto: [
-      { nome: 'Tapis roulant o cyclette moderato', kind: 'duration', minuti: 20 },
-      { nome: 'Plank', kind: 'time', serie: 3, secondi: 45 },
-      { nome: 'Mobilità generale', kind: 'duration', minuti: 10 },
+      { nome: bi('Tapis roulant o cyclette moderato', 'Moderate treadmill or stationary bike'), kind: 'duration', minuti: 20 },
+      { nome: bi('Plank', 'Plank'), kind: 'time', serie: 3, secondi: 45 },
+      { nome: bi('Mobilità generale', 'General mobility'), kind: 'duration', minuti: 10 },
     ],
   },
   yoga: {
     specifico: [
-      { nome: 'Saluto al sole', kind: 'count', conteggio: 5 },
-      { nome: 'Sequenza guerriero I-II-III', kind: 'duration', minuti: 10 },
-      { nome: 'Posizioni di equilibrio (albero, sedia)', kind: 'duration', minuti: 8 },
-      { nome: 'Torsioni da seduti', kind: 'duration', minuti: 8 },
-      { nome: 'Rilassamento finale (savasana)', kind: 'duration', minuti: 10 },
+      { nome: bi('Saluto al sole', 'Sun salutation'), kind: 'count', conteggio: 5 },
+      { nome: bi('Sequenza guerriero I-II-III', 'Warrior I-II-III sequence'), kind: 'duration', minuti: 10 },
+      { nome: bi('Posizioni di equilibrio (albero, sedia)', 'Balance poses (tree, chair)'), kind: 'duration', minuti: 8 },
+      { nome: bi('Torsioni da seduti', 'Seated twists'), kind: 'duration', minuti: 8 },
+      { nome: bi('Rilassamento finale (savasana)', 'Final relaxation (savasana)'), kind: 'duration', minuti: 10 },
     ],
     supporto: [
-      { nome: 'Camminata leggera', kind: 'duration', minuti: 20 },
-      { nome: 'Respirazione diaframmatica', kind: 'duration', minuti: 10 },
-      { nome: 'Stretching dolce', kind: 'duration', minuti: 10 },
+      { nome: bi('Camminata leggera', 'Light walk'), kind: 'duration', minuti: 20 },
+      { nome: bi('Respirazione diaframmatica', 'Diaphragmatic breathing'), kind: 'duration', minuti: 10 },
+      { nome: bi('Stretching dolce', 'Gentle stretching'), kind: 'duration', minuti: 10 },
     ],
   },
   calcio: {
     specifico: [
-      { nome: 'Riscaldamento con palla', kind: 'duration', minuti: 10 },
-      { nome: 'Passaggi e controllo', kind: 'duration', minuti: 20 },
-      { nome: 'Conduzione e dribbling', kind: 'duration', minuti: 15 },
-      { nome: 'Tiri in porta', kind: 'duration', minuti: 15 },
-      { nome: 'Partitella a possesso palla', kind: 'duration', minuti: 20 },
+      { nome: bi('Riscaldamento con palla', 'Warm-up with the ball'), kind: 'duration', minuti: 10 },
+      { nome: bi('Passaggi e controllo', 'Passing and ball control'), kind: 'duration', minuti: 20 },
+      { nome: bi('Conduzione e dribbling', 'Dribbling and ball carrying'), kind: 'duration', minuti: 15 },
+      { nome: bi('Tiri in porta', 'Shots on goal'), kind: 'duration', minuti: 15 },
+      { nome: bi('Partitella a possesso palla', 'Possession small-sided game'), kind: 'duration', minuti: 20 },
     ],
     supporto: [
-      { nome: 'Scatti brevi 20m', kind: 'count', conteggio: 6 },
-      { nome: 'Squat jump', kind: 'reps', serie: 3, ripetizioni: 12 },
-      { nome: 'Plank', kind: 'time', serie: 3, secondi: 40 },
-      { nome: 'Stretching gambe', kind: 'duration', minuti: 8 },
+      { nome: bi('Scatti brevi 20m', '20m short sprints'), kind: 'count', conteggio: 6 },
+      { nome: bi('Squat jump', 'Squat jump'), kind: 'reps', serie: 3, ripetizioni: 12 },
+      { nome: bi('Plank', 'Plank'), kind: 'time', serie: 3, secondi: 40 },
+      { nome: bi('Stretching gambe', 'Leg stretching'), kind: 'duration', minuti: 8 },
     ],
   },
 };
@@ -199,15 +203,15 @@ const SPORT_POOLS: Record<string, SportPools> = {
 // Fallback per le ~90 discipline extra, che non hanno un pool dedicato.
 const GENERIC_POOL: SportPools = {
   specifico: [
-    { nome: 'Riscaldamento specifico', kind: 'duration', minuti: 10 },
-    { nome: 'Lavoro tecnico di base', kind: 'duration', minuti: 20 },
-    { nome: 'Simulazione di gara o situazione reale', kind: 'duration', minuti: 20 },
-    { nome: 'Defaticamento', kind: 'duration', minuti: 10 },
+    { nome: bi('Riscaldamento specifico', 'Sport-specific warm-up'), kind: 'duration', minuti: 10 },
+    { nome: bi('Lavoro tecnico di base', 'Basic technical work'), kind: 'duration', minuti: 20 },
+    { nome: bi('Simulazione di gara o situazione reale', 'Race or real-situation simulation'), kind: 'duration', minuti: 20 },
+    { nome: bi('Defaticamento', 'Cool-down'), kind: 'duration', minuti: 10 },
   ],
   supporto: [
-    { nome: 'Rinforzo core', kind: 'reps', serie: 3, ripetizioni: 15 },
-    { nome: 'Mobilità articolare', kind: 'duration', minuti: 10 },
-    { nome: 'Cardio leggero', kind: 'duration', minuti: 15 },
+    { nome: bi('Rinforzo core', 'Core strengthening'), kind: 'reps', serie: 3, ripetizioni: 15 },
+    { nome: bi('Mobilità articolare', 'Joint mobility'), kind: 'duration', minuti: 10 },
+    { nome: bi('Cardio leggero', 'Light cardio'), kind: 'duration', minuti: 15 },
   ],
 };
 
@@ -215,12 +219,15 @@ function poolsFor(sportId: string): SportPools {
   return SPORT_POOLS[sportId] ?? GENERIC_POOL;
 }
 
-export function specificoLabel(sportId: string): string {
-  return SPECIFICO_LABELS[sportId] ?? `Sessione tecnica: ${sportId}`;
+export function specificoLabel(sportId: string): Bilingual {
+  const found = SPECIFICO_LABELS[sportId];
+  if (found) return found;
+  const name = sportDisplayName(sportId);
+  return bi(`Sessione tecnica: ${name.it}`, `Technical session: ${name.en}`);
 }
 
-export function supportoLabel(sportId: string): string {
-  return SUPPORTO_LABELS[sportId] ?? 'Cardio e potenziamento complementare';
+export function supportoLabel(sportId: string): Bilingual {
+  return SUPPORTO_LABELS[sportId] ?? bi('Cardio e potenziamento complementare', 'Complementary cardio and conditioning');
 }
 
 // Elenco esercizi di una sessione, con serie/ripetizioni/durata scalate per livello.
@@ -242,6 +249,8 @@ function totalMinutes(esercizi: Exercise[]): number {
   return Math.max(20, esercizi.length * 6);
 }
 
+const REST_DESCRIPTION: Bilingual = bi('Recupero attivo o riposo completo', 'Active recovery or full rest');
+
 // Scheda dettagliata giorno per giorno: ogni giorno di allenamento porta con sé
 // sia la sessione Specifico sia quella Supporto, così l'utente può passare
 // dall'una all'altra per lo stesso giorno invece di vederne solo una.
@@ -256,8 +265,8 @@ export function generateWeekPlan(sportId: string, level: WorkoutLevel): WorkoutD
       return {
         giorno,
         isRiposo: true,
-        specifico: { descrizione: 'Recupero attivo o riposo completo', durataMinuti: 0, esercizi: [] },
-        supporto: { descrizione: 'Recupero attivo o riposo completo', durataMinuti: 0, esercizi: [] },
+        specifico: { descrizione: REST_DESCRIPTION, durataMinuti: 0, esercizi: [] },
+        supporto: { descrizione: REST_DESCRIPTION, durataMinuti: 0, esercizi: [] },
       };
     }
     const specificoEsercizi = getSessionExercises(sportId, level, 'Specifico');

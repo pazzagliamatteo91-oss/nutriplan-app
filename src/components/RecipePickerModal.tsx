@@ -4,6 +4,7 @@ import { colors, fonts, radii, spacing } from '../theme';
 import { Icon } from './Icon';
 import { Recipe, MealType } from '../data/types';
 import { useApp } from '../context/AppContext';
+import { pick } from '../i18n';
 
 type Props = {
   visible: boolean;
@@ -14,7 +15,7 @@ type Props = {
 };
 
 export function RecipePickerModal({ visible, mealType, recipes, onSelect, onClose }: Props) {
-  const { t, locale } = useApp();
+  const { t, locale, language } = useApp();
   const mealLabel = locale.mealTypes[mealType] ?? mealType;
 
   return (
@@ -38,7 +39,7 @@ export function RecipePickerModal({ visible, mealType, recipes, onSelect, onClos
             renderItem={({ item }) => (
               <Pressable style={styles.row} onPress={() => onSelect(item.id)}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.name} numberOfLines={1}>{item.nome}</Text>
+                  <Text style={styles.name} numberOfLines={1}>{pick(item.nome, language)}</Text>
                   <Text style={styles.meta}>{item.tempoMinuti} min · {item.kcal} kcal</Text>
                 </View>
                 <Icon name="chevronRight" size={16} color={colors.textFaint} />

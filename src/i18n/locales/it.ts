@@ -161,7 +161,5 @@ export const it: Locale = {
     'Perdere peso': 'Perdere peso', 'Mantenere peso': 'Mantenere peso', 'Aumentare massa': 'Aumentare massa', 'Migliorare salute': 'Migliorare salute',
   },
   workoutLevels: { 'Base': 'Base', 'Intermedio': 'Intermedio', 'Avanzato': 'Avanzato', 'Agonista': 'Agonista' },
-  languages: {
-    it: 'Italiano', en: 'Inglese', es: 'Spagnolo', fr: 'Francese', ru: 'Russo', zh: 'Cinese', ja: 'Giapponese',
-  },
+  languages: { it: 'Italiano', en: 'Inglese' },
 };

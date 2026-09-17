@@ -15,21 +15,23 @@ import { RECIPES } from '../data/recipes';
 import { intoleranceWarnings } from '../data/recipeFilters';
 import { CUISINE_HERO_IMAGES } from '../data/recipeImages';
 import type { RecipesStackParamList } from '../navigation/types';
+import { pick } from '../i18n';
 
 type Props = NativeStackScreenProps<RecipesStackParamList, 'RecipeDetail'>;
 
 export function RecipeDetailScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
-  const { profile, t, locale } = useApp();
+  const { profile, t, locale, language } = useApp();
   const [detailed, setDetailed] = useState(false);
   const [partnerSheetOpen, setPartnerSheetOpen] = useState(false);
 
   const recipe = useMemo(() => RECIPES.find((r) => r.id === route.params.recipeId)!, [route.params.recipeId]);
   const warnings = useMemo(() => {
-    const w = intoleranceWarnings(recipe, profile);
-    if (recipe.lattosio && !w.includes('Lattosio')) w.push('Lattosio (attenzione)');
-    return w;
-  }, [recipe, profile]);
+    const ids = intoleranceWarnings(recipe, profile);
+    const labels = ids.map((id) => locale.intolerances[id] ?? id);
+    if (recipe.lattosio && !ids.includes('lattosio')) labels.push(t('recipes.containsLactose'));
+    return labels;
+  }, [recipe, profile, locale, t]);
 
   const steps = detailed ? recipe.passaggiDettagliati : recipe.passaggiSintetici;
 
@@ -48,7 +50,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
           <Badge label={locale.dietTags[recipe.tagDietetico] ?? recipe.tagDietetico} tone="neutral" />
         </View>
 
-        <Text style={styles.title}>{recipe.nome}</Text>
+        <Text style={styles.title}>{pick(recipe.nome, language)}</Text>
 
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
@@ -72,8 +74,8 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
         <Card style={styles.ingredientsCard}>
           {recipe.ingredienti.map((ing, idx) => (
             <View key={idx} style={[styles.ingredientRow, idx === recipe.ingredienti.length - 1 && { borderBottomWidth: 0 }]}>
-              <Text style={styles.ingredientName}>{ing.nome}</Text>
-              <Text style={styles.ingredientQty}>{ing.quantita}</Text>
+              <Text style={styles.ingredientName}>{pick(ing.nome, language)}</Text>
+              <Text style={styles.ingredientQty}>{pick(ing.quantita, language)}</Text>
             </View>
           ))}
         </Card>
@@ -95,13 +97,13 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
               <View style={styles.stepNumber}>
                 <Text style={styles.stepNumberText}>{idx + 1}</Text>
               </View>
-              <Text style={styles.stepText}>{s}</Text>
+              <Text style={styles.stepText}>{pick(s, language)}</Text>
             </View>
           ))}
         </Card>
 
         <Text style={styles.sectionTitle}>{t('recipes.videoTitle')}</Text>
-        <RecipeVideoSection query={recipe.nome} />
+        <RecipeVideoSection query={pick(recipe.nome, language)} />
 
         <Button
           label={t('recipes.buyIngredientsOn')}

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { UserProfile, AnalysisValue, ShoppingItem, MealPlanEntry, MealType } from '../data/types';
+import { UserProfile, AnalysisValue, ShoppingItem, MealPlanEntry, MealType, bi } from '../data/types';
 import { generateMockAnalysis, noteForValue } from '../data/analysisParams';
 import { generateShoppingList, ShoppingScale } from '../data/shopping';
 import { WEEKDAYS } from '../data/constants';
@@ -175,7 +175,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setAnalysisValues((prev) =>
       prev.map((a) => {
         if (a.id !== id) return a;
-        if (value === null) return { ...a, valore: null, stato: 'manuale', nota: '' };
+        if (value === null) return { ...a, valore: null, stato: 'manuale', nota: bi('', '') };
         const { stato, nota } = noteForValue(id, value);
         return { ...a, valore: value, stato, nota };
       })

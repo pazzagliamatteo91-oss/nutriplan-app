@@ -1,11 +1,18 @@
+import { Bilingual } from '../i18n/types';
+export type { Bilingual };
+
+export function bi(it: string, en: string): Bilingual {
+  return { it, en };
+}
+
 export type MealType = 'colazione' | 'pranzo' | 'spuntino' | 'cena';
 export type DietTag = 'Vegetariano' | 'Vegano' | 'Carne' | 'Pesce';
 
-export type Ingredient = { nome: string; quantita: string };
+export type Ingredient = { nome: Bilingual; quantita: Bilingual };
 
 export type Recipe = {
   id: string;
-  nome: string;
+  nome: Bilingual;
   tipoPasto: MealType;
   cucina: string; // id in CUISINES_WITH_RECIPES
   tagDietetico: DietTag;
@@ -17,8 +24,8 @@ export type Recipe = {
   glutine: boolean;
   alcol: boolean;
   ingredienti: Ingredient[];
-  passaggiSintetici: string[];
-  passaggiDettagliati: string[];
+  passaggiSintetici: Bilingual[];
+  passaggiDettagliati: Bilingual[];
 };
 
 export type UserProfile = {
@@ -45,13 +52,13 @@ export type AnalysisStatus = 'basso' | 'normale' | 'alto' | 'manuale';
 
 export type AnalysisValue = {
   id: string;
-  parametro: string;
+  parametro: Bilingual;
   unita: string;
   rangeMin: number;
   rangeMax: number;
   valore: number | null;
   stato: AnalysisStatus;
-  nota: string;
+  nota: Bilingual;
 };
 
 export type WorkoutLevel = 'Base' | 'Intermedio' | 'Avanzato' | 'Agonista';
@@ -59,22 +66,22 @@ export type WorkoutLevel = 'Base' | 'Intermedio' | 'Avanzato' | 'Agonista';
 export type WorkoutSessionType = 'Specifico' | 'Supporto';
 
 export type Exercise = {
-  nome: string;
-  dettaglio: string;
+  nome: Bilingual;
+  dettaglio: Bilingual;
 };
 
 export type WorkoutDay = {
   giorno: string;
   isRiposo: boolean;
-  specifico: { descrizione: string; durataMinuti: number; esercizi: Exercise[] };
-  supporto: { descrizione: string; durataMinuti: number; esercizi: Exercise[] };
+  specifico: { descrizione: Bilingual; durataMinuti: number; esercizi: Exercise[] };
+  supporto: { descrizione: Bilingual; durataMinuti: number; esercizi: Exercise[] };
 };
 
 export type ShoppingItem = {
   id: string;
-  nome: string;
+  nome: Bilingual;
   categoria: string;
-  quantita: string;
+  quantita: Bilingual;
   spuntato: boolean;
 };
 

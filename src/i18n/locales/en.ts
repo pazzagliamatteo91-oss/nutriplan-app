@@ -161,7 +161,5 @@ export const en: Locale = {
     'Perdere peso': 'Lose weight', 'Mantenere peso': 'Maintain weight', 'Aumentare massa': 'Gain muscle', 'Migliorare salute': 'Improve health',
   },
   workoutLevels: { 'Base': 'Beginner', 'Intermedio': 'Intermediate', 'Avanzato': 'Advanced', 'Agonista': 'Competitive' },
-  languages: {
-    it: 'Italian', en: 'English', es: 'Spanish', fr: 'French', ru: 'Russian', zh: 'Chinese', ja: 'Japanese',
-  },
+  languages: { it: 'Italian', en: 'English' },
 };

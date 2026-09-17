@@ -1,29 +1,19 @@
-import { LanguageCode, Locale, OptionDict } from './types';
+import { LanguageCode, Locale, OptionDict, Bilingual } from './types';
 import { it } from './locales/it';
 import { en } from './locales/en';
-import { es } from './locales/es';
-import { fr } from './locales/fr';
-import { ru } from './locales/ru';
-import { zh } from './locales/zh';
-import { ja } from './locales/ja';
 
-export const LOCALES: Record<LanguageCode, Locale> = { it, en, es, fr, ru, zh, ja };
+export const LOCALES: Record<LanguageCode, Locale> = { it, en };
 
 export const LANGUAGES: { code: LanguageCode; label: string }[] = [
   { code: 'it', label: 'Italiano' },
   { code: 'en', label: 'English' },
-  { code: 'es', label: 'Español' },
-  { code: 'fr', label: 'Français' },
-  { code: 'ru', label: 'Русский' },
-  { code: 'zh', label: '中文' },
-  { code: 'ja', label: '日本語' },
 ];
 
 export const DEFAULT_LANGUAGE: LanguageCode = 'it';
 
 // Locale BCP-47 usato da Intl.DateTimeFormat per formattare date/orari nella lingua scelta.
 export const INTL_LOCALE: Record<LanguageCode, string> = {
-  it: 'it-IT', en: 'en-US', es: 'es-ES', fr: 'fr-FR', ru: 'ru-RU', zh: 'zh-CN', ja: 'ja-JP',
+  it: 'it-IT', en: 'en-US',
 };
 
 function getPath(obj: any, path: string): unknown {
@@ -51,4 +41,9 @@ export function translateOption(dict: OptionDict, id: string): string {
   return dict[id] ?? id;
 }
 
-export type { LanguageCode, Locale, OptionDict };
+// Estrae la stringa nella lingua corrente da un campo di contenuto bilingue.
+export function pick(value: Bilingual, language: LanguageCode): string {
+  return value[language] ?? value.it;
+}
+
+export type { LanguageCode, Locale, OptionDict, Bilingual };

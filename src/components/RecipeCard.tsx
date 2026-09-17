@@ -6,23 +6,25 @@ import { Badge } from './Badge';
 import { Icon } from './Icon';
 import { Recipe } from '../data/types';
 import { useApp } from '../context/AppContext';
+import { pick } from '../i18n';
 
 type Props = {
   recipe: Recipe;
-  warnings: string[];
+  warnings: string[]; // id di locale.intolerances
   onPress: () => void;
 };
 
 export function RecipeCard({ recipe, warnings, onPress }: Props) {
-  const { t, locale } = useApp();
+  const { t, locale, language } = useApp();
   const cuisineName = locale.cuisines[recipe.cucina] ?? recipe.cucina;
+  const warningLabels = warnings.map((id) => locale.intolerances[id] ?? id);
   return (
     <Card onPress={onPress} style={styles.card}>
       <View style={styles.topRow}>
         <Badge label={cuisineName} tone="accent" />
         <Badge label={locale.dietTags[recipe.tagDietetico] ?? recipe.tagDietetico} tone="neutral" />
       </View>
-      <Text style={styles.name}>{recipe.nome}</Text>
+      <Text style={styles.name}>{pick(recipe.nome, language)}</Text>
       <View style={styles.metaRow}>
         <View style={styles.metaItem}>
           <Icon name="clock" size={14} color={colors.textMuted} />
@@ -37,7 +39,7 @@ export function RecipeCard({ recipe, warnings, onPress }: Props) {
         <View style={styles.warningRow}>
           <Icon name="warningTriangle" size={13} color={colors.berry} />
           <Text style={styles.warningText}>
-            {warnings.length > 0 ? t('recipes.warning', { list: warnings.join(', ') }) : t('recipes.containsLactose')}
+            {warningLabels.length > 0 ? t('recipes.warning', { list: warningLabels.join(', ') }) : t('recipes.containsLactose')}
           </Text>
         </View>
       )}

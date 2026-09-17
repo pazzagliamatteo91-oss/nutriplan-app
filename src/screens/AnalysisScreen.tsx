@@ -9,6 +9,7 @@ import { Button } from '../components/Button';
 import { useApp } from '../context/AppContext';
 import { generateMockAnalysis } from '../data/analysisParams';
 import { AnalysisValue, AnalysisStatus } from '../data/types';
+import { pick } from '../i18n';
 
 function statusColor(stato: AnalysisStatus) {
   if (stato === 'alto') return colors.berry;
@@ -18,7 +19,7 @@ function statusColor(stato: AnalysisStatus) {
 }
 
 export function AnalysisScreen() {
-  const { analysisValues, updateAnalysisValue, t } = useApp();
+  const { analysisValues, updateAnalysisValue, t, language } = useApp();
   const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState<AnalysisValue | null>(null);
   const [draft, setDraft] = useState('');
@@ -78,7 +79,7 @@ export function AnalysisScreen() {
           <Pressable key={item.id} onPress={() => openEdit(item)}>
             <Card style={styles.paramCard}>
               <View style={styles.paramTopRow}>
-                <Text style={styles.paramName}>{item.parametro}</Text>
+                <Text style={styles.paramName}>{pick(item.parametro, language)}</Text>
                 <View style={[styles.statusPill, { backgroundColor: statusColor(item.stato) + '33' }]}>
                   <Text style={[styles.statusText, { color: statusColor(item.stato) }]}>{STATUS_LABEL[item.stato]}</Text>
                 </View>
@@ -91,10 +92,10 @@ export function AnalysisScreen() {
                   {t('analysis.range', { min: item.rangeMin, max: item.rangeMax })} {item.unita}
                 </Text>
               </View>
-              {item.nota ? (
+              {item.nota.it ? (
                 <View style={styles.noteRow}>
                   <Icon name="leaf" size={13} color={colors.accent} />
-                  <Text style={styles.noteText}>{item.nota}</Text>
+                  <Text style={styles.noteText}>{pick(item.nota, language)}</Text>
                 </View>
               ) : null}
             </Card>
@@ -106,7 +107,7 @@ export function AnalysisScreen() {
         <View style={styles.editOverlay}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setEditing(null)} />
           <View style={styles.editCard}>
-            <Text style={styles.editTitle}>{editing?.parametro}</Text>
+            <Text style={styles.editTitle}>{editing ? pick(editing.parametro, language) : ''}</Text>
             <TextInput
               value={draft}
               onChangeText={setDraft}

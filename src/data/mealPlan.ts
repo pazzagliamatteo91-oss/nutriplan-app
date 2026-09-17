@@ -1,4 +1,4 @@
-import { MealPlanEntry, Recipe, ShoppingItem } from './types';
+import { MealPlanEntry, Recipe, ShoppingItem, Bilingual, bi } from './types';
 
 export type PlanScale = 'giorno' | 'settimana' | 'mese';
 
@@ -57,8 +57,10 @@ const CATEGORY_KEYWORDS: { categoria: string; keywords: string[] }[] = [
   },
 ];
 
-export function categorizeIngredient(nome: string): string {
-  const lower = nome.toLowerCase();
+// La categorizzazione usa sempre il testo italiano come chiave canonica,
+// indipendentemente dalla lingua visualizzata dall'utente.
+export function categorizeIngredient(nomeIt: string): string {
+  const lower = nomeIt.toLowerCase();
   for (const { categoria, keywords } of CATEGORY_KEYWORDS) {
     if (keywords.some((k) => lower.includes(k))) return categoria;
   }
@@ -103,7 +105,9 @@ function formatAggregatedQty(value: number | null, unit: string, occorrenze: num
 
 // Aggrega gli ingredienti di tutte le ricette pianificate nelle date indicate,
 // sommando le quantità quando l'unità è riconoscibile, e le raggruppa per
-// categoria per costruire direttamente la lista della spesa.
+// categoria per costruire direttamente la lista della spesa. Il raggruppamento
+// usa sempre il testo italiano come chiave canonica, indipendentemente dalla
+// lingua visualizzata dall'utente, e produce quantità/nomi bilingui in uscita.
 export function aggregateMealPlanToShoppingItems(
   entries: MealPlanEntry[],
   dates: string[],
@@ -112,29 +116,26 @@ export function aggregateMealPlanToShoppingItems(
   const dateSet = new Set(dates);
   const relevant = entries.filter((e) => dateSet.has(e.data));
 
-  type Agg = { nome: string; categoria: string; value: number | null; unit: string; occorrenze: number };
+  type Agg = { nome: Bilingual; categoria: string; valueIt: number | null; unitIt: string; valueEn: number | null; unitEn: string; occorrenze: number };
   const aggregated = new Map<string, Agg>();
 
   for (const entry of relevant) {
     const recipe = recipesById.get(entry.recipeId);
     if (!recipe) continue;
     for (const ing of recipe.ingredienti) {
-      const { value, unit } = parseQuantity(ing.quantita);
-      const key = `${ing.nome.toLowerCase()}|${unit.toLowerCase()}`;
+      const { value: valueIt, unit: unitIt } = parseQuantity(ing.quantita.it);
+      const { value: valueEn, unit: unitEn } = parseQuantity(ing.quantita.en);
+      const key = `${ing.nome.it.toLowerCase()}|${unitIt.toLowerCase()}`;
       const existing = aggregated.get(key);
       if (existing) {
         existing.occorrenze += 1;
-        if (existing.value !== null && value !== null) {
-          existing.value += value;
-        } else {
-          existing.value = null;
-        }
+        existing.valueIt = existing.valueIt !== null && valueIt !== null ? existing.valueIt + valueIt : null;
+        existing.valueEn = existing.valueEn !== null && valueEn !== null ? existing.valueEn + valueEn : null;
       } else {
         aggregated.set(key, {
           nome: ing.nome,
-          categoria: categorizeIngredient(ing.nome),
-          value,
-          unit,
+          categoria: categorizeIngredient(ing.nome.it),
+          valueIt, unitIt, valueEn, unitEn,
           occorrenze: 1,
         });
       }
@@ -142,10 +143,13 @@ export function aggregateMealPlanToShoppingItems(
   }
 
   return Array.from(aggregated.values()).map((a) => ({
-    id: `mp-${slugify(a.nome)}-${slugify(a.unit)}`,
+    id: `mp-${slugify(a.nome.it)}-${slugify(a.unitIt)}`,
     nome: a.nome,
     categoria: a.categoria,
-    quantita: formatAggregatedQty(a.value, a.unit, a.occorrenze),
+    quantita: bi(
+      formatAggregatedQty(a.valueIt, a.unitIt, a.occorrenze),
+      formatAggregatedQty(a.valueEn, a.unitEn, a.occorrenze)
+    ),
     spuntato: false,
   }));
 }

@@ -1,6 +1,11 @@
-export type LanguageCode = 'it' | 'en' | 'es' | 'fr' | 'ru' | 'zh' | 'ja';
+export type LanguageCode = 'it' | 'en';
 
 export type OptionDict = Record<string, string>;
+
+// Contenuto dati (nomi ricette/ingredienti, esercizi, parametri di analisi, ecc.)
+// portato in entrambe le lingue supportate, a differenza delle stringhe di
+// interfaccia che passano dal dizionario Locale.
+export type Bilingual = { it: string; en: string };
 
 // Forma completa delle stringhe traducibili dell'interfaccia. I contenuti mock
 // (nomi/ingredienti/passaggi delle ricette, esercizi di allenamento, parametri

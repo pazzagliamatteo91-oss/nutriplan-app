@@ -10,12 +10,14 @@ import { useApp } from '../context/AppContext';
 import { MAIN_SPORTS, EXTENDED_SPORTS, DEVICE_TYPES } from '../data/constants';
 import { WORKOUT_LEVELS, SPORT_ICONS, specificoLabel, supportoLabel, generateWeekPlan, getSessionExercises } from '../data/workouts';
 import { WorkoutLevel } from '../data/types';
+import { sportDisplayName } from '../data/constants';
+import { pick } from '../i18n';
 
 type SessionKind = 'specifico' | 'supporto';
 
 export function WorkoutScreen() {
-  const { profile, updateProfile, workoutSelection, setWorkoutSelection, lastWorkoutLog, logWorkoutToday, t, locale } = useApp();
-  const sportLabel = (sportId: string) => locale.mainSports[sportId] ?? MAIN_SPORTS.find((s) => s.id === sportId)?.label ?? sportId;
+  const { profile, updateProfile, workoutSelection, setWorkoutSelection, lastWorkoutLog, logWorkoutToday, t, locale, language } = useApp();
+  const sportLabel = (sportId: string) => pick(sportDisplayName(sportId), language);
   const [extendedOpen, setExtendedOpen] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [dayTab, setDayTab] = useState<Record<string, SessionKind>>({});
@@ -52,7 +54,7 @@ export function WorkoutScreen() {
           </Pressable>
         </View>
         {!MAIN_SPORTS.some((s) => s.id === sportId) && (
-          <Text style={styles.currentExtended}>{t('workout.selectedDiscipline', { sport: sportId })}</Text>
+          <Text style={styles.currentExtended}>{t('workout.selectedDiscipline', { sport: sportLabel(sportId) })}</Text>
         )}
 
         <Text style={styles.label}>{t('workout.level')}</Text>
@@ -68,11 +70,11 @@ export function WorkoutScreen() {
               <Icon name={icon} size={20} color={colors.accentText} />
             </View>
             <Text style={styles.sessionTitle}>{t('workout.specific')}</Text>
-            <Text style={styles.sessionSubtitle}>{specificoLabel(sportId)}</Text>
-            {specificoEsercizi.slice(0, 3).map((ex) => (
-              <View key={ex.nome} style={styles.exerciseRow}>
-                <Text style={styles.exerciseName} numberOfLines={1}>{ex.nome}</Text>
-                <Text style={styles.exerciseDettaglio}>{ex.dettaglio}</Text>
+            <Text style={styles.sessionSubtitle}>{pick(specificoLabel(sportId), language)}</Text>
+            {specificoEsercizi.slice(0, 3).map((ex, idx) => (
+              <View key={idx} style={styles.exerciseRow}>
+                <Text style={styles.exerciseName} numberOfLines={1}>{pick(ex.nome, language)}</Text>
+                <Text style={styles.exerciseDettaglio}>{pick(ex.dettaglio, language)}</Text>
               </View>
             ))}
           </Card>
@@ -81,11 +83,11 @@ export function WorkoutScreen() {
               <Icon name="gym" size={20} color={colors.accentText} />
             </View>
             <Text style={styles.sessionTitle}>{t('workout.support')}</Text>
-            <Text style={styles.sessionSubtitle}>{supportoLabel(sportId)}</Text>
-            {supportoEsercizi.slice(0, 3).map((ex) => (
-              <View key={ex.nome} style={styles.exerciseRow}>
-                <Text style={styles.exerciseName} numberOfLines={1}>{ex.nome}</Text>
-                <Text style={styles.exerciseDettaglio}>{ex.dettaglio}</Text>
+            <Text style={styles.sessionSubtitle}>{pick(supportoLabel(sportId), language)}</Text>
+            {supportoEsercizi.slice(0, 3).map((ex, idx) => (
+              <View key={idx} style={styles.exerciseRow}>
+                <Text style={styles.exerciseName} numberOfLines={1}>{pick(ex.nome, language)}</Text>
+                <Text style={styles.exerciseDettaglio}>{pick(ex.dettaglio, language)}</Text>
               </View>
             ))}
           </Card>
@@ -136,10 +138,10 @@ export function WorkoutScreen() {
                 </Pressable>
                 {isExpanded && !day.isRiposo && (
                   <View style={styles.dayExercises}>
-                    {session.esercizi.map((ex) => (
-                      <View key={ex.nome} style={styles.exerciseRow}>
-                        <Text style={styles.exerciseName}>{ex.nome}</Text>
-                        <Text style={styles.exerciseDettaglio}>{ex.dettaglio}</Text>
+                    {session.esercizi.map((ex, idx) => (
+                      <View key={idx} style={styles.exerciseRow}>
+                        <Text style={styles.exerciseName}>{pick(ex.nome, language)}</Text>
+                        <Text style={styles.exerciseDettaglio}>{pick(ex.dettaglio, language)}</Text>
                       </View>
                     ))}
                   </View>
@@ -195,16 +197,18 @@ export function WorkoutScreen() {
             <Text style={styles.modalTitle}>{t('workout.otherDisciplinesTitle')}</Text>
             <ScrollView style={{ maxHeight: 420 }}>
               <View style={styles.extendedGrid}>
-                {EXTENDED_SPORTS.map((name) => (
+                {EXTENDED_SPORTS.map((s) => (
                   <Pressable
-                    key={name}
-                    style={[styles.extendedChip, sportId === name && styles.extendedChipActive]}
+                    key={s.id}
+                    style={[styles.extendedChip, sportId === s.id && styles.extendedChipActive]}
                     onPress={() => {
-                      setSport(name);
+                      setSport(s.id);
                       setExtendedOpen(false);
                     }}
                   >
-                    <Text style={[styles.extendedLabel, sportId === name && styles.extendedLabelActive]}>{name}</Text>
+                    <Text style={[styles.extendedLabel, sportId === s.id && styles.extendedLabelActive]}>
+                      {language === 'it' ? s.it : s.en}
+                    </Text>
                   </Pressable>
                 ))}
               </View>

@@ -9,6 +9,7 @@ import { PartnerSheet } from '../components/PartnerSheet';
 import { useApp } from '../context/AppContext';
 import { SHOPPING_CATEGORIES, WEEKDAYS } from '../data/constants';
 import { ShoppingScale } from '../data/shopping';
+import { pick } from '../i18n';
 
 const SCALE_OPTIONS: { id: ShoppingScale; icon: IconName }[] = [
   { id: 'giorno', icon: 'calendarDay' },
@@ -17,7 +18,7 @@ const SCALE_OPTIONS: { id: ShoppingScale; icon: IconName }[] = [
 ];
 
 export function ShoppingScreen() {
-  const { profile, updateProfile, shoppingScale, setShoppingScale, shoppingItems, toggleShoppingItem, t, locale } = useApp();
+  const { profile, updateProfile, shoppingScale, setShoppingScale, shoppingItems, toggleShoppingItem, t, locale, language } = useApp();
   const [partnerSheetOpen, setPartnerSheetOpen] = useState(false);
   const scaleLabels: Record<ShoppingScale, string> = { giorno: t('shopping.scaleDay'), settimana: t('shopping.scaleWeek'), mese: t('shopping.scaleMonth') };
 
@@ -73,8 +74,8 @@ export function ShoppingScreen() {
                     <View style={[styles.checkbox, item.spuntato && styles.checkboxChecked]}>
                       {item.spuntato && <Icon name="check" size={12} color={colors.accentText} />}
                     </View>
-                    <Text style={[styles.itemName, item.spuntato && styles.itemNameChecked]}>{item.nome}</Text>
-                    <Text style={styles.itemQty}>{item.quantita}</Text>
+                    <Text style={[styles.itemName, item.spuntato && styles.itemNameChecked]}>{pick(item.nome, language)}</Text>
+                    <Text style={styles.itemQty}>{pick(item.quantita, language)}</Text>
                   </Pressable>
                 ))}
               </Card>
