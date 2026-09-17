@@ -17,6 +17,8 @@ import { LANGUAGES, LanguageCode, OptionDict } from '../i18n';
 
 type PickerKey = 'eta' | 'peso' | 'altezza' | 'kcal' | 'proteine' | 'stileVita' | 'obiettivo' | 'lingua' | null;
 
+const HEADER_HEIGHT = 170;
+
 const ETA_OPTIONS = Array.from({ length: 90 - 14 + 1 }, (_, i) => 14 + i);
 const PESO_OPTIONS = Array.from({ length: 180 - 30 + 1 }, (_, i) => 30 + i);
 const ALTEZZA_OPTIONS = Array.from({ length: 220 - 130 + 1 }, (_, i) => 130 + i);
@@ -86,9 +88,9 @@ export function ProfileScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
+      <View style={[styles.header, { minHeight: insets.top + HEADER_HEIGHT }]}>
         <AvocadoWaveHeader />
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, { marginTop: insets.top + spacing.sm }]}>
           <Avatar
             uri={profile.avatarUri}
             iconName={profile.avatarIcon as IconName}
@@ -235,9 +237,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.lg,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
     overflow: 'hidden',
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },

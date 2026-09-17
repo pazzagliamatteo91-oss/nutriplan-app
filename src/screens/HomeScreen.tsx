@@ -19,6 +19,8 @@ import { toDateKey } from '../data/mealPlan';
 import { INTL_LOCALE, pick } from '../i18n';
 import type { RootTabParamList } from '../navigation/types';
 
+const HEADER_HEIGHT = 170;
+
 function formatToday(locale: string) {
   const label = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
   return label.charAt(0).toUpperCase() + label.slice(1);
@@ -59,9 +61,9 @@ export function HomeScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
+      <View style={[styles.header, { minHeight: insets.top + HEADER_HEIGHT }]}>
         <AvocadoWaveHeader />
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, { marginTop: insets.top + spacing.sm }]}>
           <Avatar uri={profile.avatarUri} iconName={profile.avatarIcon as any} size={52} />
           <View style={styles.headerText}>
             <Text style={styles.name}>{profile.nome}</Text>
@@ -149,9 +151,6 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.lg,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
     overflow: 'hidden',
   },
   headerRow: {

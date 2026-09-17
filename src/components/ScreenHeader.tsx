@@ -9,28 +9,32 @@ type Props = {
   right?: React.ReactNode;
 };
 
-// Header superiore "a fetta di avocado", dalla cima dello schermo fino al titolo.
+const HEADER_HEIGHT = 170;
+
+// Header superiore "a fetta di avocado": l'area colorata scende ben oltre il
+// titolo, con un bordo inferiore a onda (non un semplice angolo arrotondato).
 export function ScreenHeader({ title, right }: Props) {
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
+    <View style={[styles.container, { minHeight: insets.top + HEADER_HEIGHT }]}>
       <AvocadoWaveHeader />
-      <Text style={styles.title}>{title}</Text>
-      {right}
+      <View style={[styles.row, { marginTop: insets.top + spacing.sm }]}>
+        <Text style={styles.title}>{title}</Text>
+        {right}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
+    overflow: 'hidden',
+  },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-    overflow: 'hidden',
+    paddingHorizontal: spacing.lg,
   },
   title: {
     fontFamily: fonts.headingBold,
