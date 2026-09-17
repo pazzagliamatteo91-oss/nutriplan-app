@@ -1,42 +1,48 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { colors, radii } from '../theme';
+import { View, Text, StyleSheet } from 'react-native';
+import { colors, fonts, radii } from '../theme';
 import { toDateKey } from '../data/mealPlan';
 
 type Props = {
   dates: string[]; // 'YYYY-MM-DD' dei giorni con allenamento registrato
-  days?: number; // quanti giorni mostrare, terminando oggi
+  weekdayInitials: string[]; // 7 iniziali, da lunedì a domenica, nella lingua corrente
 };
 
-const CELL = 12;
-const GAP = 4;
+const CELL = 26;
+const GAP = 6;
 
-// Griglia stile "contribution graph": una cella per ciascuno degli ultimi `days`
-// giorni, colorata se quel giorno è presente in `dates`. Le colonne sono settimane
-// (7 righe), lette da sinistra (più vecchia) a destra (più recente).
-export function ActivityGrid({ dates, days = 28 }: Props) {
+// Striscia compatta della settimana corrente (lunedì -> domenica, oggi incluso):
+// una cella per giorno con l'iniziale sopra, piena se quel giorno ha un
+// allenamento registrato, altrimenti appena visibile per non fare rumore
+// visivo (invece della griglia "contribution graph" a 4 settimane, troppo
+// grande e per lo più vuota).
+export function ActivityGrid({ dates, weekdayInitials }: Props) {
   const set = new Set(dates);
-  const cells: { key: string; active: boolean }[] = [];
   const today = new Date();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const key = toDateKey(d);
-    cells.push({ key, active: set.has(key) });
-  }
+  const mondayOffset = (today.getDay() + 6) % 7; // 0 = lunedì
+  const monday = new Date(today);
+  monday.setDate(monday.getDate() - mondayOffset);
 
-  const columns: { key: string; active: boolean }[][] = [];
-  for (let i = 0; i < cells.length; i += 7) {
-    columns.push(cells.slice(i, i + 7));
-  }
+  const cells = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(d.getDate() + i);
+    const key = toDateKey(d);
+    return { key, active: set.has(key), isToday: key === toDateKey(today), isFuture: d > today };
+  });
 
   return (
     <View style={styles.row}>
-      {columns.map((col, ci) => (
-        <View key={ci} style={styles.column}>
-          {col.map((cell) => (
-            <View key={cell.key} style={[styles.cell, cell.active && styles.cellActive]} />
-          ))}
+      {cells.map((cell, i) => (
+        <View key={cell.key} style={styles.dayColumn}>
+          <Text style={[styles.dayInitial, cell.isToday && styles.dayInitialToday]}>{weekdayInitials[i]}</Text>
+          <View
+            style={[
+              styles.cell,
+              cell.active && styles.cellActive,
+              cell.isToday && !cell.active && styles.cellToday,
+              cell.isFuture && styles.cellFuture,
+            ]}
+          />
         </View>
       ))}
     </View>
@@ -79,7 +85,17 @@ export function computeWeeklyComparison(dates: string[]): { thisWeek: number; la
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: GAP },
-  column: { gap: GAP },
-  cell: { width: CELL, height: CELL, borderRadius: radii.sm / 3, backgroundColor: colors.panelAlt },
-  cellActive: { backgroundColor: colors.accent },
+  dayColumn: { alignItems: 'center', gap: 5 },
+  dayInitial: { fontFamily: fonts.bodyMedium, fontSize: 10, color: colors.textFaint },
+  dayInitialToday: { color: colors.highlight, fontFamily: fonts.bodySemiBold },
+  cell: {
+    width: CELL,
+    height: CELL,
+    borderRadius: radii.sm / 1.5,
+    backgroundColor: colors.panelAlt,
+    opacity: 0.5,
+  },
+  cellActive: { backgroundColor: colors.waveSkin, opacity: 1 },
+  cellToday: { opacity: 0.5, borderWidth: 1.5, borderColor: colors.highlight },
+  cellFuture: { opacity: 0.25 },
 });

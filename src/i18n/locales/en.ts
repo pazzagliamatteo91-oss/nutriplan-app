@@ -107,6 +107,8 @@ export const en: Locale = {
     otherDisciplinesTitle: 'Other disciplines',
     consistencyTitle: 'Your consistency',
     streakLabel: '{n}-day streak',
+    streakLabelOne: '1-day streak',
+    exerciseCount: '{n} exercises',
     thisWeekLabel: 'this week',
     legendThisWeek: 'This week ({n})',
     legendLastWeek: 'Last week ({n})',

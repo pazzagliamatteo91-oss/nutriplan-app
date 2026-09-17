@@ -1,13 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Modal } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, radii, spacing } from '../theme';
-import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
 import { Icon, IconName } from '../components/Icon';
 import { Button } from '../components/Button';
 import { useApp } from '../context/AppContext';
-import { MAIN_SPORTS, EXTENDED_SPORTS, DEVICE_TYPES } from '../data/constants';
+import { MAIN_SPORTS, EXTENDED_SPORTS, DEVICE_TYPES, WEEKDAYS } from '../data/constants';
 import { WORKOUT_LEVELS, SPORT_ICONS, LEVEL_WEEKLY_GOAL, specificoLabel, supportoLabel, generateWeekPlan, getSessionExercises } from '../data/workouts';
 import { WorkoutLevel } from '../data/types';
 import { sportDisplayName } from '../data/constants';
@@ -19,9 +20,13 @@ import { useHealthWorkoutSync } from '../hooks/useHealthWorkoutSync';
 
 type SessionKind = 'specifico' | 'supporto';
 
+const HEADER_HEIGHT = 52;
+
 export function WorkoutScreen() {
-  const headerHeight = useScreenHeaderHeight();
+  const insets = useSafeAreaInsets();
+  const headerHeight = insets.top + HEADER_HEIGHT;
   const { profile, updateProfile, workoutSelection, setWorkoutSelection, workoutLog, lastWorkoutLog, logWorkoutToday, t, locale, language } = useApp();
+  const weekdayInitials = useMemo(() => WEEKDAYS.map((d) => (locale.weekdays[d] ?? d).charAt(0).toUpperCase()), [locale]);
   const sportLabel = (sportId: string) => pick(sportDisplayName(sportId), language);
   const [extendedOpen, setExtendedOpen] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
@@ -76,7 +81,7 @@ export function WorkoutScreen() {
             {streak > 0 && (
               <View style={styles.streakPill}>
                 <Icon name="flame" size={13} color={colors.highlight} />
-                <Text style={styles.streakLabel}>{t('workout.streakLabel', { n: streak })}</Text>
+                <Text style={styles.streakLabel}>{t(streak === 1 ? 'workout.streakLabelOne' : 'workout.streakLabel', { n: streak })}</Text>
               </View>
             )}
           </View>
@@ -99,8 +104,10 @@ export function WorkoutScreen() {
                   <Text style={styles.ringLegendLabel}>{t('workout.legendLastWeek', { n: lastWeek })}</Text>
                 </View>
               </View>
-              <ActivityGrid dates={sportDates} />
             </View>
+          </View>
+          <View style={styles.weekStripWrap}>
+            <ActivityGrid dates={sportDates} weekdayInitials={weekdayInitials} />
           </View>
         </Card>
 
@@ -110,14 +117,16 @@ export function WorkoutScreen() {
             const active = sportId === s.id;
             return (
               <Pressable key={s.id} style={[styles.sportChip, active && styles.sportChipActive]} onPress={() => setSport(s.id)}>
-                <Icon name={SPORT_ICONS[s.id]} size={18} color={active ? colors.accentText : colors.text} />
-                <Text style={[styles.sportLabel, active && styles.sportLabelActive]}>{locale.mainSports[s.id] ?? s.label}</Text>
+                <Icon name={SPORT_ICONS[s.id]} size={20} color={active ? colors.accentText : colors.text} />
+                <Text style={[styles.sportLabel, active && styles.sportLabelActive]} numberOfLines={1}>
+                  {locale.mainSports[s.id] ?? s.label}
+                </Text>
               </Pressable>
             );
           })}
           <Pressable style={styles.sportChip} onPress={() => setExtendedOpen(true)}>
-            <Icon name="moreDots" size={18} color={colors.text} />
-            <Text style={styles.sportLabel}>{t('workout.other')}</Text>
+            <Icon name="moreDots" size={20} color={colors.text} />
+            <Text style={styles.sportLabel} numberOfLines={1}>{t('workout.other')}</Text>
           </Pressable>
         </View>
         {!MAIN_SPORTS.some((s) => s.id === sportId) && (
@@ -132,32 +141,40 @@ export function WorkoutScreen() {
         </View>
 
         <View style={styles.sessionRow}>
-          <Card style={styles.sessionCard}>
-            <View style={styles.sessionIconWrap}>
-              <Icon name={icon} size={20} color={colors.accentText} />
+          <View style={styles.heroCard}>
+            <LinearGradient
+              colors={[colors.highlight, '#26381F']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={styles.heroOverlay} />
+            <View style={styles.heroIconBadge}>
+              <Icon name={icon} size={18} color={colors.white} />
             </View>
-            <Text style={styles.sessionTitle}>{t('workout.specific')}</Text>
-            <Text style={styles.sessionSubtitle}>{pick(specificoLabel(sportId), language)}</Text>
-            {specificoEsercizi.slice(0, 3).map((ex, idx) => (
-              <View key={idx} style={styles.exerciseRow}>
-                <Text style={styles.exerciseName} numberOfLines={1}>{pick(ex.nome, language)}</Text>
-                <Text style={styles.exerciseDettaglio}>{pick(ex.dettaglio, language)}</Text>
-              </View>
-            ))}
-          </Card>
-          <Card style={styles.sessionCard} variant="panelAlt">
-            <View style={[styles.sessionIconWrap, { backgroundColor: colors.accent }]}>
-              <Icon name="gym" size={20} color={colors.accentText} />
+            <View style={styles.heroTextWrap}>
+              <Text style={styles.heroCount}>{t('workout.exerciseCount', { n: specificoEsercizi.length })}</Text>
+              <Text style={styles.heroTitle}>{t('workout.specific')}</Text>
+              <Text style={styles.heroSubtitle} numberOfLines={1}>{pick(specificoLabel(sportId), language)}</Text>
             </View>
-            <Text style={styles.sessionTitle}>{t('workout.support')}</Text>
-            <Text style={styles.sessionSubtitle}>{pick(supportoLabel(sportId), language)}</Text>
-            {supportoEsercizi.slice(0, 3).map((ex, idx) => (
-              <View key={idx} style={styles.exerciseRow}>
-                <Text style={styles.exerciseName} numberOfLines={1}>{pick(ex.nome, language)}</Text>
-                <Text style={styles.exerciseDettaglio}>{pick(ex.dettaglio, language)}</Text>
-              </View>
-            ))}
-          </Card>
+          </View>
+          <View style={styles.heroCard}>
+            <LinearGradient
+              colors={[colors.wavePit, '#4A331F']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={styles.heroOverlay} />
+            <View style={styles.heroIconBadge}>
+              <Icon name="gym" size={18} color={colors.white} />
+            </View>
+            <View style={styles.heroTextWrap}>
+              <Text style={styles.heroCount}>{t('workout.exerciseCount', { n: supportoEsercizi.length })}</Text>
+              <Text style={styles.heroTitle}>{t('workout.support')}</Text>
+              <Text style={styles.heroSubtitle} numberOfLines={1}>{pick(supportoLabel(sportId), language)}</Text>
+            </View>
+          </View>
         </View>
 
         <Text style={styles.sectionTitle}>{t('workout.weekPlanTitle', { sport: sportLabel(sportId), level: locale.workoutLevels[livello] ?? livello })}</Text>
@@ -257,7 +274,11 @@ export function WorkoutScreen() {
         )}
       </ScrollView>
 
-      <ScreenHeader title={t('workout.title')} />
+      <View style={[styles.header, { height: headerHeight }]}>
+        <View style={[styles.headerRow, { marginTop: insets.top }]}>
+          <Text style={styles.headerTitle}>{t('workout.title')}</Text>
+        </View>
+      </View>
 
       <Modal visible={extendedOpen} transparent animationType="slide" onRequestClose={() => setExtendedOpen(false)}>
         <View style={styles.modalOverlay}>
@@ -304,6 +325,18 @@ export function WorkoutScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.background,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+    zIndex: 10,
+  },
+  headerRow: { paddingHorizontal: spacing.lg, justifyContent: 'center', flex: 1 },
+  headerTitle: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.text },
   label: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.textMuted, textTransform: 'uppercase', marginBottom: spacing.sm },
   consistencyCard: { marginBottom: spacing.lg },
   consistencyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
@@ -312,29 +345,48 @@ const styles = StyleSheet.create({
   streakLabel: { fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.highlight },
   consistencyBody: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   consistencyInfo: { flex: 1, gap: spacing.sm },
+  weekStripWrap: { marginTop: spacing.lg, alignItems: 'center' },
   trendLabel: { fontFamily: fonts.bodySemiBold, fontSize: 12.5 },
   ringLegendRow: { flexDirection: 'row', gap: spacing.md },
   ringLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   ringLegendDot: { width: 8, height: 8, borderRadius: 4 },
   ringLegendLabel: { fontFamily: fonts.body, fontSize: 11.5, color: colors.textMuted },
-  sportGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.xs },
+  sportGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
   sportChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 12,
-    borderRadius: radii.pill, backgroundColor: colors.panel,
+    width: '31%',
+    height: 78,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 4,
+    borderRadius: radii.md,
+    backgroundColor: colors.panel,
   },
   sportChipActive: { backgroundColor: colors.accent },
-  sportLabel: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.text },
-  sportLabelActive: { color: colors.accentText },
+  sportLabel: { fontFamily: fonts.bodyMedium, fontSize: 12.5, color: colors.text, textAlign: 'center' },
+  sportLabelActive: { color: colors.accentText, fontFamily: fonts.bodySemiBold },
   currentExtended: { fontFamily: fonts.body, fontSize: 12, color: colors.highlight, marginBottom: spacing.md },
   levelRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: spacing.lg },
   sessionRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.lg },
-  sessionCard: { flex: 1 },
-  sessionIconWrap: {
-    width: 38, height: 38, borderRadius: radii.md, backgroundColor: colors.background,
-    alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm,
+  heroCard: {
+    flex: 1,
+    height: 168,
+    borderRadius: radii.lg,
+    overflow: 'hidden',
+    padding: spacing.md,
+    justifyContent: 'space-between',
   },
-  sessionTitle: { fontFamily: fonts.heading, fontSize: 15, color: colors.text, marginBottom: 4 },
-  sessionSubtitle: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginBottom: spacing.sm },
+  heroOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)' },
+  heroIconBadge: {
+    width: 34, height: 34, borderRadius: radii.sm,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center', justifyContent: 'center',
+    alignSelf: 'flex-start',
+  },
+  heroTextWrap: { gap: 2 },
+  heroCount: { fontFamily: fonts.bodySemiBold, fontSize: 11, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: 0.3 },
+  heroTitle: { fontFamily: fonts.headingBold, fontSize: 19, color: colors.white },
+  heroSubtitle: { fontFamily: fonts.body, fontSize: 12.5, color: 'rgba(255,255,255,0.8)' },
   sectionTitle: { fontFamily: fonts.heading, fontSize: 16, color: colors.text, marginBottom: 2 },
   sectionSubtitle: { fontFamily: fonts.body, fontSize: 12, color: colors.textFaint, marginBottom: spacing.sm },
   weekCard: { marginBottom: spacing.lg, paddingVertical: 4 },
