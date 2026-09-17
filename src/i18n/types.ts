@@ -132,8 +132,9 @@ export type Locale = {
     otherDisciplinesTitle: string;
     consistencyTitle: string;
     streakLabel: string; // {n}
-    weeklySessionsLabel: string; // {n}, {goal}
     thisWeekLabel: string;
+    legendThisWeek: string; // {n}
+    legendLastWeek: string; // {n}
     vsLastWeekUp: string; // {n}
     vsLastWeekDown: string; // {n}
     vsLastWeekSame: string;

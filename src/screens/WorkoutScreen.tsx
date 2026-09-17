@@ -34,8 +34,8 @@ export function WorkoutScreen() {
   const streak = useMemo(() => computeStreak(sportDates), [sportDates]);
   const { thisWeek, lastWeek } = useMemo(() => computeWeeklyComparison(sportDates), [sportDates]);
   const weeklyGoal = LEVEL_WEEKLY_GOAL[livello];
-  const ringPercent = weeklyGoal > 0 ? (thisWeek / weeklyGoal) * 100 : 0;
-  const ringColor = thisWeek >= weeklyGoal ? colors.highlight : colors.accent;
+  const outerRingPercent = weeklyGoal > 0 ? (thisWeek / weeklyGoal) * 100 : 0;
+  const innerRingPercent = weeklyGoal > 0 ? (lastWeek / weeklyGoal) * 100 : 0;
   const trendLabel = useMemo(() => {
     if (lastWeek === 0 && thisWeek === 0) return t('workout.vsLastWeekNone');
     if (lastWeek === 0) return t('workout.vsLastWeekNew');
@@ -82,13 +82,23 @@ export function WorkoutScreen() {
           </View>
           <View style={styles.consistencyBody}>
             <ConsistencyRing
-              percent={ringPercent}
-              ringColor={ringColor}
-              centerLabel={t('workout.weeklySessionsLabel', { n: thisWeek, goal: weeklyGoal })}
+              outerPercent={outerRingPercent}
+              innerPercent={innerRingPercent}
+              centerLabel={`${thisWeek}/${weeklyGoal}`}
               centerSubLabel={t('workout.thisWeekLabel')}
             />
             <View style={styles.consistencyInfo}>
               <Text style={[styles.trendLabel, { color: trendColor }]}>{trendLabel}</Text>
+              <View style={styles.ringLegendRow}>
+                <View style={styles.ringLegendItem}>
+                  <View style={[styles.ringLegendDot, { backgroundColor: colors.waveSkin }]} />
+                  <Text style={styles.ringLegendLabel}>{t('workout.legendThisWeek', { n: thisWeek })}</Text>
+                </View>
+                <View style={styles.ringLegendItem}>
+                  <View style={[styles.ringLegendDot, { backgroundColor: colors.wavePit }]} />
+                  <Text style={styles.ringLegendLabel}>{t('workout.legendLastWeek', { n: lastWeek })}</Text>
+                </View>
+              </View>
               <ActivityGrid dates={sportDates} />
             </View>
           </View>
@@ -303,6 +313,10 @@ const styles = StyleSheet.create({
   consistencyBody: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   consistencyInfo: { flex: 1, gap: spacing.sm },
   trendLabel: { fontFamily: fonts.bodySemiBold, fontSize: 12.5 },
+  ringLegendRow: { flexDirection: 'row', gap: spacing.md },
+  ringLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  ringLegendDot: { width: 8, height: 8, borderRadius: 4 },
+  ringLegendLabel: { fontFamily: fonts.body, fontSize: 11.5, color: colors.textMuted },
   sportGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.xs },
   sportChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 12,
