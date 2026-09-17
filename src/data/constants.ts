@@ -202,6 +202,7 @@ export const EXTENDED_SPORTS: ExtendedSport[] = [
   { id: 'curling', it: 'Curling', en: 'Curling' },
   { id: 'equitazione', it: 'Equitazione', en: 'Horseback riding' },
   { id: 'polo', it: 'Polo', en: 'Polo' },
+  { id: 'hyrox', it: 'Hyrox', en: 'Hyrox' },
   { id: 'tiro-fionda', it: 'Tiro con la fionda', en: 'Slingshot shooting' },
   { id: 'parkour', it: 'Parkour', en: 'Parkour' },
   { id: 'ginnastica-artistica', it: 'Ginnastica artistica', en: 'Artistic gymnastics' },

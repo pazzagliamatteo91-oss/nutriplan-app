@@ -28,6 +28,27 @@ export type Recipe = {
   passaggiDettagliati: Bilingual[];
 };
 
+// Carichi di riferimento dell'utente per gli esercizi con sovraccarico
+// (usati dal motore IA per calcolare il carico target: es. "75% dello squat").
+export type CarichiRiferimento = {
+  squatKg: number | null;
+  panca_kg: number | null;
+  stacco_kg: number | null;
+  corpoLibero: boolean;
+};
+
+// Metriche dell'ultimo allenamento rilevate da smartwatch/percezione utente,
+// usate dal motore IA per adattare il carico della scheda successiva.
+export type MetricheSmartwatch = {
+  data: string; // 'YYYY-MM-DD'
+  hrMediaBpm: number | null;
+  hrPiccoBpm: number | null;
+  hrv: number | null;
+  calorie: number | null;
+  rpePercepito: number | null; // 1-10
+  recuperoInsufficiente: boolean;
+};
+
 export type UserProfile = {
   nome: string;
   avatarUri: string | null;
@@ -47,6 +68,8 @@ export type UserProfile = {
   giorniSpesa: string[];
   dispositivi: Record<string, boolean>;
   onboardingCompletato: boolean;
+  carichiRiferimento: CarichiRiferimento;
+  ultimaSessioneSmartwatch: MetricheSmartwatch | null;
 };
 
 export type WorkoutLogEntry = { data: string; sportId: string };
@@ -112,6 +135,68 @@ export type SportWorkoutLibrary = {
   supportoLabel: Bilingual;
   focus: ModulesByLevel;
   supporto: ModulesByLevel;
+};
+
+// --- Motore IA (Anthropic Claude): scheda generata in tempo reale ---
+
+export const AI_WORKOUT_SPORTS = ['corsa', 'ciclismo', 'palestra', 'crossfit', 'hyrox'] as const;
+export type AiWorkoutSport = (typeof AI_WORKOUT_SPORTS)[number];
+
+export type AiWorkoutObiettivo =
+  | 'Forza'
+  | 'Ipertrofia'
+  | 'Resistenza Lattacida'
+  | 'Prevenzione Infortuni'
+  | 'Performance Hyrox';
+
+export type AiWorkoutRequestParams = {
+  sport: AiWorkoutSport;
+  livello: WorkoutLevel;
+  obiettivo: AiWorkoutObiettivo;
+  tipoSessione: WorkoutSessionType;
+  numeroScheda: number; // 1-10
+  tempoMinuti: number;
+  attrezzatura: string;
+  carichiIniziali: CarichiRiferimento;
+  metricheSmartwatch: MetricheSmartwatch | null;
+  limitazioni: string;
+};
+
+export type AiRiscaldamentoItem = {
+  esercizio: string;
+  durataORip: string;
+  focusTecnico: string;
+};
+
+export type AiEsercizioPrincipale = {
+  nomeEsercizio: string;
+  serie: number;
+  ripetizioni: string;
+  recuperoSecondi: number;
+  rpeTarget: number;
+  suggerimentoCarico: string;
+  progressioneProssimaSessione: string;
+  tempoEsecutivo: string;
+  motivoBiomeccanico: string;
+  noteEsecuzione: string;
+};
+
+export type AiDefaticamentoItem = {
+  esercizio: string;
+  durata: string;
+};
+
+export type AiWorkoutPlan = {
+  sport: string;
+  livello: string;
+  tipoSessione: string;
+  numeroSchedaAttuale: number;
+  totaleSchedeCiclo: number;
+  focusFaseAttuale: string;
+  adattamentoCaricoSmartwatch: string;
+  riscaldamento: AiRiscaldamentoItem[];
+  bloccoPrincipale: AiEsercizioPrincipale[];
+  defaticamentoMobilita: AiDefaticamentoItem[];
 };
 
 export type ShoppingItem = {

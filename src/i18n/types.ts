@@ -149,6 +149,51 @@ export type Locale = {
     healthSyncBody: string; // {minutes}
     healthSyncConfirm: string;
     healthSyncDismiss: string;
+    aiCtaTitle: string;
+    aiCtaSubtitle: string;
+    aiModalTitle: string;
+    aiSessionType: string;
+    aiObjective: string;
+    aiObjectiveForza: string;
+    aiObjectiveIpertrofia: string;
+    aiObjectiveResistenza: string;
+    aiObjectivePrevenzione: string;
+    aiObjectivePerformanceHyrox: string;
+    aiSchedaNumber: string;
+    aiTimeAvailable: string;
+    aiEquipment: string;
+    aiEquipmentPlaceholder: string;
+    aiLoads: string;
+    aiLoadsBodyweight: string;
+    aiLoadSquat: string;
+    aiLoadBench: string;
+    aiLoadDeadlift: string;
+    aiSmartwatch: string;
+    aiHrAvg: string;
+    aiHrPeak: string;
+    aiHrv: string;
+    aiCalories: string;
+    aiRpe: string;
+    aiPoorRecovery: string;
+    aiLimitations: string;
+    aiLimitationsPlaceholder: string;
+    aiGenerateButton: string;
+    aiGenerating: string;
+    aiErrorMissingKey: string;
+    aiErrorInvalidKey: string;
+    aiErrorRateLimit: string;
+    aiErrorTimeout: string;
+    aiErrorNetwork: string;
+    aiErrorGeneric: string;
+    aiResultCycle: string; // {n} {total}
+    aiResultFocus: string;
+    aiResultSmartwatchNote: string;
+    aiResultRecovery: string; // {n}
+    aiResultRpeTarget: string; // {n}
+    aiResultTempo: string; // {tempo}
+    aiResultProgression: string; // {text}
+    aiResultClose: string;
+    aiResultNewGeneration: string;
   };
   mealPlan: {
     title: string;

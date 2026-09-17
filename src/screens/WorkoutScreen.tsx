@@ -11,12 +11,13 @@ import { useApp } from '../context/AppContext';
 import { MAIN_SPORTS, EXTENDED_SPORTS, DEVICE_TYPES, WEEKDAYS } from '../data/constants';
 import { WORKOUT_LEVELS, SPORT_ICONS, LEVEL_WEEKLY_GOAL, specificoLabel, supportoLabel, generateWeekPlan, getSessionExercises } from '../data/workouts';
 import { getSportWorkoutLibrary } from '../data/workoutModules';
-import { WorkoutLevel, Exercise } from '../data/types';
+import { WorkoutLevel, Exercise, AI_WORKOUT_SPORTS, AiWorkoutSport } from '../data/types';
 import { sportDisplayName } from '../data/constants';
 import { pick } from '../i18n';
 import { ActivityGrid, computeStreak, computeWeeklyComparison } from '../components/ActivityGrid';
 import { ConsistencyRing } from '../components/ConsistencyRing';
 import { HealthSyncConfirmModal } from '../components/HealthSyncConfirmModal';
+import { AiWorkoutModal } from '../components/AiWorkoutModal';
 import { useHealthWorkoutSync } from '../hooks/useHealthWorkoutSync';
 
 type SessionKind = 'specifico' | 'supporto';
@@ -34,7 +35,9 @@ export function WorkoutScreen() {
   const [dayTab, setDayTab] = useState<Record<string, SessionKind>>({});
   const [focusModuleId, setFocusModuleId] = useState<string | null>(null);
   const [supportoModuleId, setSupportoModuleId] = useState<string | null>(null);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
   const { sportId, livello } = workoutSelection;
+  const isAiSport = (AI_WORKOUT_SPORTS as readonly string[]).includes(sportId);
 
   // Motore dei contenuti "a moduli" (stile preparatore atletico): disponibile
   // per ora per Calcio e Corsa, come dimostrazione della nuova struttura dati.
@@ -192,6 +195,19 @@ export function WorkoutScreen() {
             <Chip key={l} label={locale.workoutLevels[l] ?? l} selected={livello === l} onPress={() => setLevel(l)} />
           ))}
         </View>
+
+        {isAiSport && (
+          <Pressable style={styles.aiCtaCard} onPress={() => setAiModalOpen(true)}>
+            <View style={styles.aiCtaIconWrap}>
+              <Icon name="sparkle" size={20} color={colors.highlight} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.aiCtaTitle}>{t('workout.aiCtaTitle')}</Text>
+              <Text style={styles.aiCtaSubtitle}>{t('workout.aiCtaSubtitle')}</Text>
+            </View>
+            <Icon name="chevronRight" size={18} color={colors.textFaint} />
+          </Pressable>
+        )}
 
         {workoutLibrary ? (
           <>
@@ -367,6 +383,18 @@ export function WorkoutScreen() {
         </View>
       </Modal>
 
+      {isAiSport && (
+        <AiWorkoutModal
+          visible={aiModalOpen}
+          onClose={() => setAiModalOpen(false)}
+          sportId={sportId as AiWorkoutSport}
+          sportLabel={sportLabel(sportId)}
+          livello={livello}
+          livelloLabel={locale.workoutLevels[livello] ?? livello}
+          initialTipoSessione="Specifico"
+        />
+      )}
+
       <HealthSyncConfirmModal
         workout={pendingWorkout}
         sportIcon={pendingWorkout ? SPORT_ICONS[pendingWorkout.sportId] ?? 'workout' : 'workout'}
@@ -428,6 +456,24 @@ const styles = StyleSheet.create({
   currentExtended: { fontFamily: fonts.body, fontSize: 12, color: colors.highlight, marginBottom: spacing.md },
   levelRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: spacing.lg },
   sessionRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.lg },
+  aiCtaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.panel,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  aiCtaIconWrap: {
+    width: 40, height: 40, borderRadius: radii.sm,
+    backgroundColor: colors.panelAlt,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  aiCtaTitle: { fontFamily: fonts.bodySemiBold, fontSize: 14.5, color: colors.text },
+  aiCtaSubtitle: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 1 },
   heroCard: {
     flex: 1,
     height: 168,

@@ -48,7 +48,8 @@ export type IconName =
   | 'sun'
   | 'apple'
   | 'moon'
-  | 'search';
+  | 'search'
+  | 'sparkle';
 
 type Props = {
   name: IconName;
@@ -409,6 +410,13 @@ export function Icon({ name, size = 22, color = colors.text, strokeWidth = 1.8 }
         <Svg width={size} height={size} viewBox="0 0 24 24">
           <Circle cx="11" cy="11" r="6.5" {...common} />
           <Line x1="20" y1="20" x2="15.8" y2="15.8" {...common} />
+        </Svg>
+      );
+    case 'sparkle':
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+          <Path d="M12 3.5 13.6 9.3 19.5 11 13.6 12.7 12 18.5 10.4 12.7 4.5 11 10.4 9.3Z" {...common} />
+          <Path d="M19 15.5 19.7 17.8 22 18.5 19.7 19.2 19 21.5 18.3 19.2 16 18.5 18.3 17.8Z" fill={color} stroke="none" />
         </Svg>
       );
     default:

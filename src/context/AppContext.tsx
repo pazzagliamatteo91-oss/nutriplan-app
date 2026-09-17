@@ -33,6 +33,8 @@ export const DEFAULT_PROFILE: UserProfile = {
   giorniSpesa: ['Sabato'],
   dispositivi: { garmin: true, apple_watch: false, amazfit: false },
   onboardingCompletato: false,
+  carichiRiferimento: { squatKg: null, panca_kg: null, stacco_kg: null, corpoLibero: true },
+  ultimaSessioneSmartwatch: null,
 };
 
 type WorkoutSelection = { sportId: string; livello: WorkoutLevel };
