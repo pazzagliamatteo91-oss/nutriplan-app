@@ -134,6 +134,9 @@ export type Locale = {
     streakLabel: string; // {n}
     streakLabelOne: string;
     exerciseCount: string; // {n}
+    phaseWarmup: string;
+    phaseMain: string;
+    phaseCooldown: string;
     thisWeekLabel: string;
     legendThisWeek: string; // {n}
     legendLastWeek: string; // {n}

@@ -85,6 +85,35 @@ export type WorkoutDay = {
   supporto: { descrizione: Bilingual; durataMinuti: number; esercizi: Exercise[] };
 };
 
+// --- Motore dei contenuti delle schede (moduli a scelta, stile preparatore atletico) ---
+
+export type SessionPhase = 'riscaldamento' | 'centrale' | 'defaticamento';
+
+// Un modulo è una delle opzioni tra cui l'utente può scegliere per la
+// scheda Focus (Preparatoria/Specifica) o Supporto, con contenuto reale
+// diviso in 3 fasi e diverso per ciascun livello.
+export type WorkoutModule = {
+  id: string;
+  nome: Bilingual;
+  descrizione: Bilingual;
+  fasi: Record<SessionPhase, Exercise[]>;
+};
+
+export type ModulesByLevel = Record<WorkoutLevel, WorkoutModule[]>;
+
+// Libreria di contenuti di uno sport: per gli sport di squadra "focus" è la
+// Scheda Preparatoria (performance in campo), per gli sport individuali è la
+// Scheda Specifica (tecnica/performance); "supporto" è sempre la scheda di
+// forza/compensazione, con etichette diverse a seconda del tipo di sport.
+export type SportWorkoutLibrary = {
+  sportId: string;
+  isSportDiSquadra: boolean;
+  focusLabel: Bilingual;
+  supportoLabel: Bilingual;
+  focus: ModulesByLevel;
+  supporto: ModulesByLevel;
+};
+
 export type ShoppingItem = {
   id: string;
   nome: Bilingual;

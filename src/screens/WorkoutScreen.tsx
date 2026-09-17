@@ -10,7 +10,8 @@ import { Button } from '../components/Button';
 import { useApp } from '../context/AppContext';
 import { MAIN_SPORTS, EXTENDED_SPORTS, DEVICE_TYPES, WEEKDAYS } from '../data/constants';
 import { WORKOUT_LEVELS, SPORT_ICONS, LEVEL_WEEKLY_GOAL, specificoLabel, supportoLabel, generateWeekPlan, getSessionExercises } from '../data/workouts';
-import { WorkoutLevel } from '../data/types';
+import { getSportWorkoutLibrary } from '../data/workoutModules';
+import { WorkoutLevel, Exercise } from '../data/types';
 import { sportDisplayName } from '../data/constants';
 import { pick } from '../i18n';
 import { ActivityGrid, computeStreak, computeWeeklyComparison } from '../components/ActivityGrid';
@@ -31,7 +32,18 @@ export function WorkoutScreen() {
   const [extendedOpen, setExtendedOpen] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [dayTab, setDayTab] = useState<Record<string, SessionKind>>({});
+  const [focusModuleId, setFocusModuleId] = useState<string | null>(null);
+  const [supportoModuleId, setSupportoModuleId] = useState<string | null>(null);
   const { sportId, livello } = workoutSelection;
+
+  // Motore dei contenuti "a moduli" (stile preparatore atletico): disponibile
+  // per ora per Calcio e Corsa, come dimostrazione della nuova struttura dati.
+  // Gli altri sport continuano a usare il vecchio sistema a pool più sotto.
+  const workoutLibrary = getSportWorkoutLibrary(sportId);
+  const focusModules = workoutLibrary?.focus[livello] ?? [];
+  const supportoModules = workoutLibrary?.supporto[livello] ?? [];
+  const selectedFocusModule = focusModules.find((m) => m.id === focusModuleId) ?? focusModules[0] ?? null;
+  const selectedSupportoModule = supportoModules.find((m) => m.id === supportoModuleId) ?? supportoModules[0] ?? null;
 
   // Costanza calcolata sullo sport attualmente selezionato: cambiando sport
   // l'anello e la serie di giorni consecutivi si aggiornano di conseguenza.
@@ -71,6 +83,47 @@ export function WorkoutScreen() {
   const setLevel = (l: WorkoutLevel) => setWorkoutSelection({ sportId, livello: l });
 
   const anyDeviceConnected = Object.values(profile.dispositivi).some(Boolean);
+
+  const renderPhaseBlock = (phaseLabel: string, phaseIcon: IconName, esercizi: Exercise[]) => (
+    <View style={styles.phaseBlock}>
+      <View style={styles.phaseHeader}>
+        <Icon name={phaseIcon} size={14} color={colors.textMuted} />
+        <Text style={styles.phaseLabel}>{phaseLabel}</Text>
+      </View>
+      {esercizi.map((ex, idx) => (
+        <View key={idx} style={styles.exerciseRow}>
+          <Text style={styles.exerciseName} numberOfLines={1}>{pick(ex.nome, language)}</Text>
+          <Text style={styles.exerciseDettaglio}>{pick(ex.dettaglio, language)}</Text>
+        </View>
+      ))}
+    </View>
+  );
+
+  const renderSchedaSection = (
+    titolo: string,
+    moduli: typeof focusModules,
+    selezionato: typeof selectedFocusModule,
+    onSelect: (id: string) => void,
+    accent: string
+  ) => {
+    if (!selezionato) return null;
+    return (
+      <View style={styles.schedaSection}>
+        <Text style={styles.label}>{titolo}</Text>
+        <View style={styles.moduleChipsRow}>
+          {moduli.map((m) => (
+            <Chip key={m.id} label={pick(m.nome, language)} selected={m.id === selezionato.id} onPress={() => onSelect(m.id)} />
+          ))}
+        </View>
+        <Card style={styles.schedaCard}>
+          <Text style={[styles.schedaModuleDesc, { color: accent }]}>{pick(selezionato.descrizione, language)}</Text>
+          {renderPhaseBlock(t('workout.phaseWarmup'), 'flame', selezionato.fasi.riscaldamento)}
+          {renderPhaseBlock(t('workout.phaseMain'), 'workout', selezionato.fasi.centrale)}
+          {renderPhaseBlock(t('workout.phaseCooldown'), 'leaf', selezionato.fasi.defaticamento)}
+        </Card>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.screen}>
@@ -140,42 +193,49 @@ export function WorkoutScreen() {
           ))}
         </View>
 
-        <View style={styles.sessionRow}>
-          <View style={styles.heroCard}>
-            <LinearGradient
-              colors={[colors.highlight, '#26381F']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={styles.heroOverlay} />
-            <View style={styles.heroIconBadge}>
-              <Icon name={icon} size={18} color={colors.white} />
+        {workoutLibrary ? (
+          <>
+            {renderSchedaSection(pick(workoutLibrary.focusLabel, language), focusModules, selectedFocusModule, setFocusModuleId, colors.highlight)}
+            {renderSchedaSection(pick(workoutLibrary.supportoLabel, language), supportoModules, selectedSupportoModule, setSupportoModuleId, colors.wavePit)}
+          </>
+        ) : (
+          <View style={styles.sessionRow}>
+            <View style={styles.heroCard}>
+              <LinearGradient
+                colors={[colors.highlight, '#26381F']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={styles.heroOverlay} />
+              <View style={styles.heroIconBadge}>
+                <Icon name={icon} size={18} color={colors.white} />
+              </View>
+              <View style={styles.heroTextWrap}>
+                <Text style={styles.heroCount}>{t('workout.exerciseCount', { n: specificoEsercizi.length })}</Text>
+                <Text style={styles.heroTitle}>{t('workout.specific')}</Text>
+                <Text style={styles.heroSubtitle} numberOfLines={1}>{pick(specificoLabel(sportId), language)}</Text>
+              </View>
             </View>
-            <View style={styles.heroTextWrap}>
-              <Text style={styles.heroCount}>{t('workout.exerciseCount', { n: specificoEsercizi.length })}</Text>
-              <Text style={styles.heroTitle}>{t('workout.specific')}</Text>
-              <Text style={styles.heroSubtitle} numberOfLines={1}>{pick(specificoLabel(sportId), language)}</Text>
+            <View style={styles.heroCard}>
+              <LinearGradient
+                colors={[colors.wavePit, '#4A331F']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={styles.heroOverlay} />
+              <View style={styles.heroIconBadge}>
+                <Icon name="gym" size={18} color={colors.white} />
+              </View>
+              <View style={styles.heroTextWrap}>
+                <Text style={styles.heroCount}>{t('workout.exerciseCount', { n: supportoEsercizi.length })}</Text>
+                <Text style={styles.heroTitle}>{t('workout.support')}</Text>
+                <Text style={styles.heroSubtitle} numberOfLines={1}>{pick(supportoLabel(sportId), language)}</Text>
+              </View>
             </View>
           </View>
-          <View style={styles.heroCard}>
-            <LinearGradient
-              colors={[colors.wavePit, '#4A331F']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={styles.heroOverlay} />
-            <View style={styles.heroIconBadge}>
-              <Icon name="gym" size={18} color={colors.white} />
-            </View>
-            <View style={styles.heroTextWrap}>
-              <Text style={styles.heroCount}>{t('workout.exerciseCount', { n: supportoEsercizi.length })}</Text>
-              <Text style={styles.heroTitle}>{t('workout.support')}</Text>
-              <Text style={styles.heroSubtitle} numberOfLines={1}>{pick(supportoLabel(sportId), language)}</Text>
-            </View>
-          </View>
-        </View>
+        )}
 
         <Text style={styles.sectionTitle}>{t('workout.weekPlanTitle', { sport: sportLabel(sportId), level: locale.workoutLevels[livello] ?? livello })}</Text>
         <Text style={styles.sectionSubtitle}>{t('workout.weekPlanSubtitle')}</Text>
@@ -387,6 +447,13 @@ const styles = StyleSheet.create({
   heroCount: { fontFamily: fonts.bodySemiBold, fontSize: 11, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: 0.3 },
   heroTitle: { fontFamily: fonts.headingBold, fontSize: 19, color: colors.white },
   heroSubtitle: { fontFamily: fonts.body, fontSize: 12.5, color: 'rgba(255,255,255,0.8)' },
+  schedaSection: { marginBottom: spacing.lg },
+  moduleChipsRow: { flexDirection: 'row', flexWrap: 'wrap' },
+  schedaCard: { marginTop: spacing.xs },
+  schedaModuleDesc: { fontFamily: fonts.bodySemiBold, fontSize: 12.5, marginBottom: spacing.sm },
+  phaseBlock: { marginBottom: spacing.sm },
+  phaseHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
+  phaseLabel: { fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.3 },
   sectionTitle: { fontFamily: fonts.heading, fontSize: 16, color: colors.text, marginBottom: 2 },
   sectionSubtitle: { fontFamily: fonts.body, fontSize: 12, color: colors.textFaint, marginBottom: spacing.sm },
   weekCard: { marginBottom: spacing.lg, paddingVertical: 4 },
