@@ -16,7 +16,7 @@ function statusColor(stato: AnalysisStatus) {
   if (stato === 'alto') return colors.berry;
   if (stato === 'basso') return colors.warning;
   if (stato === 'manuale') return colors.textFaint;
-  return colors.accent;
+  return colors.highlight;
 }
 
 // Storico + valore corrente, in ordine cronologico, pronti per il grafico di andamento.
@@ -107,7 +107,7 @@ export function AnalysisScreen() {
               </View>
               {item.nota.it ? (
                 <View style={styles.noteRow}>
-                  <Icon name="leaf" size={13} color={colors.accent} />
+                  <Icon name="leaf" size={13} color={colors.highlight} />
                   <Text style={styles.noteText}>{pick(item.nota, language)}</Text>
                 </View>
               ) : null}

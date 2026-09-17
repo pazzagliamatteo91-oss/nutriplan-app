@@ -29,7 +29,7 @@ export function RecipeVideoSection({ query }: Props) {
         )}
       </View>
       <Pressable style={styles.linkRow} onPress={() => Linking.openURL(mostViewedUrl)}>
-        <Icon name="search" size={16} color={colors.accent} />
+        <Icon name="search" size={16} color={colors.highlight} />
         <Text style={styles.linkText}>{t('recipes.mostViewedOnYoutube')}</Text>
         <Icon name="chevronRight" size={16} color={colors.textFaint} />
       </Pressable>
@@ -74,6 +74,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: fonts.bodyMedium,
     fontSize: 13,
-    color: colors.accent,
+    color: colors.highlight,
   },
 });

@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   planBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: 'rgba(38,49,26,0.16)', paddingVertical: 8, paddingHorizontal: 12, borderRadius: radii.pill,
+    backgroundColor: 'rgba(255,255,255,0.55)', paddingVertical: 8, paddingHorizontal: 12, borderRadius: radii.pill,
   },
   planBtnLabel: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.accentText },
   mealTabs: {

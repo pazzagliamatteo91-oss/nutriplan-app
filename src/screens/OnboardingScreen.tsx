@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13, color: colors.text, fontFamily: fonts.body, fontSize: 16,
   },
 
-  stepEyebrow: { fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.accent, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 },
+  stepEyebrow: { fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.highlight, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 },
   stepTitle: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.text, marginBottom: spacing.xs },
   stepSubtitle: { fontFamily: fonts.body, fontSize: 13.5, color: colors.textMuted, lineHeight: 19 },
 
@@ -339,11 +339,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: colors.panel, borderRadius: radii.md, paddingVertical: 15, paddingHorizontal: spacing.md,
   },
-  choiceRowSelected: { backgroundColor: colors.panelAlt, borderWidth: 1.5, borderColor: colors.accent },
+  choiceRowSelected: { backgroundColor: colors.panelAlt, borderWidth: 1.5, borderColor: colors.highlight },
   choiceLabel: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.text },
   choiceLabelSelected: { fontFamily: fonts.bodySemiBold },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: colors.textFaint, alignItems: 'center', justifyContent: 'center' },
-  radioSelected: { borderColor: colors.accent },
+  radioSelected: { borderColor: colors.highlight },
   radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.accent },
 
   summaryCard: { backgroundColor: colors.panel, borderRadius: radii.lg, paddingHorizontal: spacing.md },

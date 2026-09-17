@@ -93,7 +93,7 @@ export function MealPlanScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.progressRow}>
-          <Icon name="check" size={14} color={colors.accent} />
+          <Icon name="check" size={14} color={colors.highlight} />
           <Text style={styles.progressText}>{t('mealPlan.plannedMeals', { filled: filledSlots, total: totalSlots })}</Text>
         </View>
 
@@ -110,7 +110,7 @@ export function MealPlanScreen({ navigation }: Props) {
                     style={[styles.mealRow, idx === MEAL_TYPES.length - 1 && { borderBottomWidth: 0 }]}
                     onPress={() => setPicker({ data: date, pasto: meal.id as MealType })}
                   >
-                    <Icon name={meal.icon} size={16} color={colors.accent} />
+                    <Icon name={meal.icon} size={16} color={colors.highlight} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.mealLabel}>{locale.mealTypes[meal.id] ?? meal.label}</Text>
                       <Text style={styles.mealValue} numberOfLines={1}>

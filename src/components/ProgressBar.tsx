@@ -9,7 +9,7 @@ type Props = {
   height?: number;
 };
 
-export function ProgressBar({ value, max, color = colors.accent, height = 8 }: Props) {
+export function ProgressBar({ value, max, color = colors.highlight, height = 8 }: Props) {
   const pct = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0;
   return (
     <View style={[styles.track, { height, borderRadius: height / 2 }]}>

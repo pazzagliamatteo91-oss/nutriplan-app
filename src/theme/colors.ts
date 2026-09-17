@@ -1,20 +1,26 @@
-// Palette "avocado" — toni smorzati, non accesi.
+// Palette "avocado" chiara — sfondo bianco caldo, testi nei toni del verde che
+// prima era lo sfondo, superfici cliccabili nel giallo della polpa di avocado.
 export const colors = {
-  background: '#4A5A43', // sfondo verde scuro
-  panel: '#57684E', // pannelli
-  panelAlt: '#63755A', // pannelli alternativi / hover
-  text: '#F5F1E4', // testo crema
-  textMuted: 'rgba(245, 241, 228, 0.68)',
-  textFaint: 'rgba(245, 241, 228, 0.45)',
-  accent: '#9DB56C', // verde avocado
-  accentText: '#26311A', // testo scuro su accento
-  berry: '#BD5B4F', // avvisi
-  berrySoft: 'rgba(189, 91, 79, 0.18)',
-  border: 'rgba(245, 241, 228, 0.12)',
-  overlay: 'rgba(20, 26, 16, 0.55)',
+  background: '#FBF8EF', // sfondo bianco caldo
+  panel: '#F1EDDC', // pannelli
+  panelAlt: '#E7E1C9', // pannelli alternativi / hover
+  text: '#4A5A43', // testo principale: il verde che era lo sfondo
+  textMuted: '#71806A', // testo secondario: stessa famiglia, più chiaro
+  textFaint: '#9CA894', // testo terziario/placeholder: ancora più chiaro
+  accent: '#E2C94E', // giallo polpa d'avocado: superfici cliccabili/pillole/cerchi
+  accentText: '#3A4734', // verde scuro: testo/icone sopra le superfici accento
+  highlight: '#4C7A34', // verde vivo: link e stati attivi direttamente sullo sfondo
+  berry: '#B14A3D', // avvisi
+  berrySoft: 'rgba(177, 74, 61, 0.12)',
+  border: 'rgba(74, 90, 67, 0.16)',
+  overlay: 'rgba(24, 30, 18, 0.5)',
   white: '#FFFFFF',
-  success: '#7FA65A',
-  warning: '#D9A441',
+  success: '#5C9C4A',
+  warning: '#C97A2E',
+  // Bande dell'header "sezione di avocado": buccia verde, polpa gialla, nocciolo.
+  waveSkin: '#8FAE68',
+  waveFlesh: '#E2C94E',
+  wavePit: '#AD8A5E',
 } as const;
 
 export type ColorToken = keyof typeof colors;

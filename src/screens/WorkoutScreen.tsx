@@ -44,7 +44,7 @@ export function WorkoutScreen() {
             <Text style={styles.consistencyTitle}>{t('workout.consistencyTitle')}</Text>
             {streak > 0 && (
               <View style={styles.streakPill}>
-                <Icon name="flame" size={13} color={colors.accent} />
+                <Icon name="flame" size={13} color={colors.highlight} />
                 <Text style={styles.streakLabel}>{t('workout.streakLabel', { n: streak })}</Text>
               </View>
             )}
@@ -196,7 +196,7 @@ export function WorkoutScreen() {
 
         {anyDeviceConnected && (
           <Card variant="panelAlt" style={styles.suggestionCard}>
-            <Icon name="flame" size={18} color={colors.accent} />
+            <Icon name="flame" size={18} color={colors.highlight} />
             <View style={{ flex: 1 }}>
               <Text style={styles.suggestionTitle}>{t('workout.suggestionTitle')}</Text>
               <Text style={styles.suggestionText}>{t('workout.suggestionBody')}</Text>
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   consistencyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
   consistencyTitle: { fontFamily: fonts.heading, fontSize: 15, color: colors.text },
   streakPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.panelAlt, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radii.pill },
-  streakLabel: { fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.accent },
+  streakLabel: { fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.highlight },
   sportGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.xs },
   sportChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 12,
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   sportChipActive: { backgroundColor: colors.accent },
   sportLabel: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.text },
   sportLabelActive: { color: colors.accentText },
-  currentExtended: { fontFamily: fonts.body, fontSize: 12, color: colors.accent, marginBottom: spacing.md },
+  currentExtended: { fontFamily: fonts.body, fontSize: 12, color: colors.highlight, marginBottom: spacing.md },
   levelRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: spacing.lg },
   sessionRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.lg },
   sessionCard: { flex: 1 },
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   },
   dayName: { width: 70, fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.text },
   dayInfo: { flex: 1 },
-  dayType: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.accent },
+  dayType: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.highlight },
   dayDesc: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted },
   dayContent: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   dayToggle: { flexDirection: 'row', backgroundColor: colors.background, borderRadius: radii.pill, padding: 2 },
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4,
   },
   exerciseName: { flex: 1, fontFamily: fonts.body, fontSize: 12, color: colors.text, marginRight: spacing.sm },
-  exerciseDettaglio: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.accent },
+  exerciseDettaglio: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.highlight },
   devicesCard: { marginBottom: spacing.lg, paddingVertical: 4 },
   deviceRow: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 12,

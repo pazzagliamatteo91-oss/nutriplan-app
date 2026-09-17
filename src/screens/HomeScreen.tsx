@@ -10,6 +10,7 @@ import { Icon, IconName } from '../components/Icon';
 import { ColorIcon, ColorIconName } from '../components/ColorIcon';
 import { ProgressBar } from '../components/ProgressBar';
 import { DiaryEntryModal } from '../components/DiaryEntryModal';
+import { AvocadoWaveHeader } from '../components/AvocadoWaveHeader';
 import { useApp } from '../context/AppContext';
 import { RECIPES } from '../data/recipes';
 import { visibleRecipes } from '../data/recipeFilters';
@@ -59,6 +60,7 @@ export function HomeScreen() {
   return (
     <View style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
+        <AvocadoWaveHeader />
         <View style={styles.headerRow}>
           <Avatar uri={profile.avatarUri} iconName={profile.avatarIcon as any} size={52} />
           <View style={styles.headerText}>
@@ -71,7 +73,7 @@ export function HomeScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Card variant="panelAlt" style={styles.notificationCard}>
           <View style={styles.notificationIcon}>
-            <Icon name="bell" size={20} color={colors.accent} />
+            <Icon name="bell" size={20} color={colors.highlight} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.notificationTitle}>{t('home.shoppingReminderTitle')}</Text>
@@ -93,7 +95,7 @@ export function HomeScreen() {
             <Text style={styles.diaryStatLabel}>{t('diary.kcalLabel')}</Text>
             <Text style={styles.diaryStatValue}>{t('diary.ofGoal', { value: kcalToday, goal: profile.kcalGiorno })}</Text>
           </View>
-          <ProgressBar value={kcalToday} max={profile.kcalGiorno} color={colors.accent} />
+          <ProgressBar value={kcalToday} max={profile.kcalGiorno} color={colors.highlight} />
 
           <View style={[styles.diaryStatRow, { marginTop: spacing.md }]}>
             <Text style={styles.diaryStatLabel}>{t('diary.proteinLabel')}</Text>
@@ -146,11 +148,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    backgroundColor: colors.accent,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
+    overflow: 'hidden',
   },
   headerRow: {
     flexDirection: 'row',

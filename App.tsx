@@ -60,7 +60,7 @@ export default function App() {
         <AppProvider>
           <AppContent />
         </AppProvider>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
       </View>
     </SafeAreaProvider>
   );

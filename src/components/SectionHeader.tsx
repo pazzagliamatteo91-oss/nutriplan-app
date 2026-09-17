@@ -36,6 +36,6 @@ const styles = StyleSheet.create({
   action: {
     fontFamily: fonts.bodyMedium,
     fontSize: 13,
-    color: colors.accent,
+    color: colors.highlight,
   },
 });

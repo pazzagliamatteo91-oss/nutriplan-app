@@ -9,6 +9,7 @@ import { SectionHeader } from '../components/SectionHeader';
 import { ListRow } from '../components/ListRow';
 import { OptionGroup, Option } from '../components/OptionGroup';
 import { WheelPickerModal } from '../components/WheelPickerModal';
+import { AvocadoWaveHeader } from '../components/AvocadoWaveHeader';
 import { IconName } from '../components/Icon';
 import { useApp } from '../context/AppContext';
 import { CUISINES, RESTRICTIONS, INTOLERANCES, ALLERGIES, LIFESTYLES, GOALS } from '../data/constants';
@@ -86,6 +87,7 @@ export function ProfileScreen() {
   return (
     <View style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
+        <AvocadoWaveHeader />
         <View style={styles.headerRow}>
           <Avatar
             uri={profile.avatarUri}
@@ -232,11 +234,11 @@ export function ProfileScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   header: {
-    backgroundColor: colors.accent,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
+    overflow: 'hidden',
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   name: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.accentText },

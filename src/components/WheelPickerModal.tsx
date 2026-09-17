@@ -89,6 +89,6 @@ const styles = StyleSheet.create({
   confirm: {
     fontFamily: fonts.bodySemiBold,
     fontSize: 15,
-    color: colors.accent,
+    color: colors.highlight,
   },
 });

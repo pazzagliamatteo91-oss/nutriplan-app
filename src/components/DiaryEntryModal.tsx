@@ -112,7 +112,7 @@ export function DiaryEntryModal({ visible, onClose }: Props) {
                     <Text style={styles.recipeName} numberOfLines={1}>{pick(item.nome, language)}</Text>
                     <Text style={styles.recipeMeta}>{item.kcal} kcal</Text>
                   </View>
-                  <Icon name="plus" size={16} color={colors.accent} />
+                  <Icon name="plus" size={16} color={colors.highlight} />
                 </Pressable>
               )}
             />

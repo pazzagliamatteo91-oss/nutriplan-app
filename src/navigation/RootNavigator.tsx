@@ -31,7 +31,7 @@ const navTheme = {
     card: colors.background,
     text: colors.text,
     border: colors.border,
-    primary: colors.accent,
+    primary: colors.highlight,
   },
 };
 
@@ -50,7 +50,7 @@ export function RootNavigator() {
             paddingTop: 8,
             paddingBottom: 10,
           },
-          tabBarActiveTintColor: colors.accent,
+          tabBarActiveTintColor: colors.highlight,
           tabBarInactiveTintColor: colors.textFaint,
           tabBarLabelStyle: { fontSize: 11, fontFamily: 'Inter_500Medium' },
           tabBarIcon: ({ focused, size }) => (

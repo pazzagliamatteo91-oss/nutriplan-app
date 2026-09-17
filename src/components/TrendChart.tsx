@@ -16,8 +16,8 @@ type Props = {
   dateFormatter?: (iso: string) => string;
 };
 
-const BAND_FILL = 'rgba(157, 181, 108, 0.16)';
-const LINE_COLOR = 'rgba(245, 241, 228, 0.55)';
+const BAND_FILL = 'rgba(143, 174, 104, 0.18)';
+const LINE_COLOR = 'rgba(74, 90, 67, 0.55)';
 
 // Grafico di andamento leggero (nessuna libreria esterna): una linea che collega
 // le letture storiche, una banda che evidenzia il range di normalità e un punto

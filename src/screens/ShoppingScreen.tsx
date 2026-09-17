@@ -51,7 +51,7 @@ export function ShoppingScreen() {
           })}
         </ScrollView>
         <View style={styles.reminderNote}>
-          <Icon name="bell" size={14} color={colors.accent} />
+          <Icon name="bell" size={14} color={colors.highlight} />
           <Text style={styles.reminderText}>{t('shopping.reminderActiveFor', { day: locale.weekdays[profile.giornoSpesa] ?? profile.giornoSpesa })}</Text>
         </View>
 
@@ -61,7 +61,7 @@ export function ShoppingScreen() {
           return (
             <View key={cat.id} style={styles.categorySection}>
               <View style={styles.categoryHeader}>
-                <Icon name={cat.icon} size={18} color={colors.accent} />
+                <Icon name={cat.icon} size={18} color={colors.highlight} />
                 <Text style={styles.categoryTitle}>{locale.shoppingCategories[cat.id] ?? cat.label}</Text>
               </View>
               <Card style={styles.categoryCard}>
