@@ -1,34 +1,66 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Modal } from 'react-native';
 import { colors, fonts, radii, spacing } from '../theme';
-import { ScreenHeader } from '../components/ScreenHeader';
+import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
 import { Icon, IconName } from '../components/Icon';
 import { Button } from '../components/Button';
 import { useApp } from '../context/AppContext';
 import { MAIN_SPORTS, EXTENDED_SPORTS, DEVICE_TYPES } from '../data/constants';
-import { WORKOUT_LEVELS, SPORT_ICONS, specificoLabel, supportoLabel, generateWeekPlan, getSessionExercises } from '../data/workouts';
+import { WORKOUT_LEVELS, SPORT_ICONS, LEVEL_WEEKLY_GOAL, specificoLabel, supportoLabel, generateWeekPlan, getSessionExercises } from '../data/workouts';
 import { WorkoutLevel } from '../data/types';
 import { sportDisplayName } from '../data/constants';
 import { pick } from '../i18n';
-import { ActivityGrid, computeStreak } from '../components/ActivityGrid';
+import { ActivityGrid, computeStreak, computeWeeklyComparison } from '../components/ActivityGrid';
+import { ConsistencyRing } from '../components/ConsistencyRing';
+import { HealthSyncConfirmModal } from '../components/HealthSyncConfirmModal';
+import { useHealthWorkoutSync } from '../hooks/useHealthWorkoutSync';
 
 type SessionKind = 'specifico' | 'supporto';
 
 export function WorkoutScreen() {
+  const headerHeight = useScreenHeaderHeight();
   const { profile, updateProfile, workoutSelection, setWorkoutSelection, workoutLog, lastWorkoutLog, logWorkoutToday, t, locale, language } = useApp();
-  const streak = useMemo(() => computeStreak(workoutLog), [workoutLog]);
   const sportLabel = (sportId: string) => pick(sportDisplayName(sportId), language);
   const [extendedOpen, setExtendedOpen] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [dayTab, setDayTab] = useState<Record<string, SessionKind>>({});
   const { sportId, livello } = workoutSelection;
 
+  // Costanza calcolata sullo sport attualmente selezionato: cambiando sport
+  // l'anello e la serie di giorni consecutivi si aggiornano di conseguenza.
+  const sportDates = useMemo(() => workoutLog.filter((e) => e.sportId === sportId).map((e) => e.data), [workoutLog, sportId]);
+  const streak = useMemo(() => computeStreak(sportDates), [sportDates]);
+  const { thisWeek, lastWeek } = useMemo(() => computeWeeklyComparison(sportDates), [sportDates]);
+  const weeklyGoal = LEVEL_WEEKLY_GOAL[livello];
+  const ringPercent = weeklyGoal > 0 ? (thisWeek / weeklyGoal) * 100 : 0;
+  const ringColor = thisWeek >= weeklyGoal ? colors.highlight : colors.accent;
+  const trendLabel = useMemo(() => {
+    if (lastWeek === 0 && thisWeek === 0) return t('workout.vsLastWeekNone');
+    if (lastWeek === 0) return t('workout.vsLastWeekNew');
+    const delta = Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
+    if (delta > 0) return t('workout.vsLastWeekUp', { n: delta });
+    if (delta < 0) return t('workout.vsLastWeekDown', { n: delta });
+    return t('workout.vsLastWeekSame');
+  }, [thisWeek, lastWeek, t]);
+  const trendColor = thisWeek > lastWeek ? colors.highlight : thisWeek < lastWeek ? colors.warning : colors.textMuted;
+
   const weekPlan = useMemo(() => generateWeekPlan(sportId, livello), [sportId, livello]);
   const specificoEsercizi = useMemo(() => getSessionExercises(sportId, livello, 'Specifico'), [sportId, livello]);
   const supportoEsercizi = useMemo(() => getSessionExercises(sportId, livello, 'Supporto'), [sportId, livello]);
   const icon: IconName = SPORT_ICONS[sportId] ?? 'workout';
+
+  // Sincronizzazione passiva con lo smartwatch (premium): non fa nulla finché
+  // i pacchetti nativi HealthKit/Health Connect non sono installati in una
+  // dev build (vedi src/data/healthSync.ts) — sicuro da tenere attivo anche
+  // su Expo Go, dove isHealthSyncAvailable() è sempre false.
+  const { pendingWorkout, dismissPendingWorkout } = useHealthWorkoutSync(lastWorkoutLog);
+  const confirmDetectedWorkout = () => {
+    if (!pendingWorkout) return;
+    logWorkoutToday(pendingWorkout.sportId);
+    dismissPendingWorkout();
+  };
 
   const setSport = (id: string) => setWorkoutSelection({ sportId: id, livello });
   const setLevel = (l: WorkoutLevel) => setWorkoutSelection({ sportId, livello: l });
@@ -37,8 +69,7 @@ export function WorkoutScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title={t('workout.title')} />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]} showsVerticalScrollIndicator={false}>
         <Card style={styles.consistencyCard}>
           <View style={styles.consistencyHeader}>
             <Text style={styles.consistencyTitle}>{t('workout.consistencyTitle')}</Text>
@@ -49,7 +80,18 @@ export function WorkoutScreen() {
               </View>
             )}
           </View>
-          <ActivityGrid dates={workoutLog} />
+          <View style={styles.consistencyBody}>
+            <ConsistencyRing
+              percent={ringPercent}
+              ringColor={ringColor}
+              centerLabel={t('workout.weeklySessionsLabel', { n: thisWeek, goal: weeklyGoal })}
+              centerSubLabel={t('workout.thisWeekLabel')}
+            />
+            <View style={styles.consistencyInfo}>
+              <Text style={[styles.trendLabel, { color: trendColor }]}>{trendLabel}</Text>
+              <ActivityGrid dates={sportDates} />
+            </View>
+          </View>
         </Card>
 
         <Text style={styles.label}>{t('workout.sport')}</Text>
@@ -169,7 +211,7 @@ export function WorkoutScreen() {
         <Button
           label={lastWorkoutLog ? t('workout.logAnother') : t('workout.logToday')}
           variant="secondary"
-          onPress={logWorkoutToday}
+          onPress={() => logWorkoutToday(sportId)}
           style={{ marginBottom: spacing.lg }}
         />
 
@@ -205,6 +247,8 @@ export function WorkoutScreen() {
         )}
       </ScrollView>
 
+      <ScreenHeader title={t('workout.title')} />
+
       <Modal visible={extendedOpen} transparent animationType="slide" onRequestClose={() => setExtendedOpen(false)}>
         <View style={styles.modalOverlay}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setExtendedOpen(false)} />
@@ -231,19 +275,34 @@ export function WorkoutScreen() {
           </View>
         </View>
       </Modal>
+
+      <HealthSyncConfirmModal
+        workout={pendingWorkout}
+        sportIcon={pendingWorkout ? SPORT_ICONS[pendingWorkout.sportId] ?? 'workout' : 'workout'}
+        sportLabel={pendingWorkout ? sportLabel(pendingWorkout.sportId) : ''}
+        title={t('workout.healthSyncTitle')}
+        body={pendingWorkout ? t('workout.healthSyncBody', { minutes: pendingWorkout.durationMinutes }) : ''}
+        confirmLabel={t('workout.healthSyncConfirm')}
+        dismissLabel={t('workout.healthSyncDismiss')}
+        onConfirm={confirmDetectedWorkout}
+        onDismiss={dismissPendingWorkout}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
   label: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.textMuted, textTransform: 'uppercase', marginBottom: spacing.sm },
   consistencyCard: { marginBottom: spacing.lg },
   consistencyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
   consistencyTitle: { fontFamily: fonts.heading, fontSize: 15, color: colors.text },
   streakPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.panelAlt, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radii.pill },
   streakLabel: { fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.highlight },
+  consistencyBody: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  consistencyInfo: { flex: 1, gap: spacing.sm },
+  trendLabel: { fontFamily: fonts.bodySemiBold, fontSize: 12.5 },
   sportGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.xs },
   sportChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 12,

@@ -1,22 +1,39 @@
 import { IconName } from '../components/Icon';
-import { WorkoutDay, WorkoutLevel, Exercise, Bilingual, bi } from './types';
+import { WorkoutDay, WorkoutLevel, Exercise, Bilingual, bi, WorkoutLogEntry } from './types';
 import { WEEKDAYS, sportDisplayName } from './constants';
 import { toDateKey } from './mealPlan';
 
-// Cronologia di esempio: allenamenti negli ultimi 28 giorni con la cadenza
-// tipica di un livello Intermedio (~4 sessioni/settimana), a scopo demo per
-// la card di costanza. Lascia libero oggi e ieri così l'utente può registrare
-// subito un nuovo allenamento e vederlo comparire.
-export function generateMockWorkoutLog(): string[] {
-  const daysAgo = [2, 4, 6, 9, 11, 13, 16, 18, 20, 23, 25, 27];
-  return daysAgo
-    .map((n) => {
+// Cronologia di esempio: allenamenti negli ultimi 28 giorni, alternati tra i due
+// sport di default, con più sessioni nella settimana corrente rispetto alla
+// precedente, cosi' l'anello di costanza mostra un miglioramento a scopo demo.
+export function generateMockWorkoutLog(): WorkoutLogEntry[] {
+  const entries: { n: number; sportId: string }[] = [
+    { n: 1, sportId: 'corsa' },
+    { n: 3, sportId: 'palestra' },
+    { n: 5, sportId: 'corsa' },
+    { n: 9, sportId: 'corsa' },
+    { n: 12, sportId: 'palestra' },
+    { n: 16, sportId: 'corsa' },
+    { n: 20, sportId: 'palestra' },
+    { n: 23, sportId: 'corsa' },
+    { n: 27, sportId: 'corsa' },
+  ];
+  return entries
+    .map(({ n, sportId }) => {
       const d = new Date();
       d.setDate(d.getDate() - n);
-      return toDateKey(d);
+      return { data: toDateKey(d), sportId };
     })
-    .sort(); // ordine cronologico crescente: l'ultimo elemento è sempre il più recente
+    .sort((a, b) => a.data.localeCompare(b.data)); // ordine cronologico crescente: l'ultimo elemento è sempre il più recente
 }
+
+// Sessioni settimanali obiettivo per livello: usate per l'anello di costanza.
+export const LEVEL_WEEKLY_GOAL: Record<WorkoutLevel, number> = {
+  Base: 2,
+  Intermedio: 3,
+  Avanzato: 4,
+  Agonista: 5,
+};
 
 export const WORKOUT_LEVELS: WorkoutLevel[] = ['Base', 'Intermedio', 'Avanzato', 'Agonista'];
 

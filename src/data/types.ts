@@ -44,10 +44,12 @@ export type UserProfile = {
   cucinePreferite: string[];
   restrizioni: string[];
   sportPreferiti: string[];
-  giornoSpesa: string;
+  giorniSpesa: string[];
   dispositivi: Record<string, boolean>;
   onboardingCompletato: boolean;
 };
+
+export type WorkoutLogEntry = { data: string; sportId: string };
 
 export type AnalysisStatus = 'basso' | 'normale' | 'alto' | 'manuale';
 

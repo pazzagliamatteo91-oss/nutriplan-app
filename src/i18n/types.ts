@@ -87,7 +87,9 @@ export type Locale = {
     scaleWeek: string;
     scaleMonth: string;
     shoppingDayReminder: string;
+    shoppingDaysReminder: string;
     reminderActiveFor: string; // {day}
+    reminderInactive: string;
     saveList: string;
     saveListDone: string;
     saveListDoneBody: string;
@@ -130,6 +132,17 @@ export type Locale = {
     otherDisciplinesTitle: string;
     consistencyTitle: string;
     streakLabel: string; // {n}
+    weeklySessionsLabel: string; // {n}, {goal}
+    thisWeekLabel: string;
+    vsLastWeekUp: string; // {n}
+    vsLastWeekDown: string; // {n}
+    vsLastWeekSame: string;
+    vsLastWeekNew: string;
+    vsLastWeekNone: string;
+    healthSyncTitle: string;
+    healthSyncBody: string; // {minutes}
+    healthSyncConfirm: string;
+    healthSyncDismiss: string;
   };
   mealPlan: {
     title: string;

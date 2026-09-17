@@ -61,29 +61,20 @@ export function HomeScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { minHeight: insets.top + HEADER_HEIGHT }]}>
-        <AvocadoWaveHeader />
-        <View style={[styles.headerRow, { marginTop: insets.top + spacing.sm }]}>
-          <Avatar uri={profile.avatarUri} iconName={profile.avatarIcon as any} size={52} />
-          <View style={styles.headerText}>
-            <Text style={styles.name}>{profile.nome}</Text>
-            <Text style={styles.date}>{formatToday(intlLocale)}</Text>
-          </View>
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Card variant="panelAlt" style={styles.notificationCard}>
-          <View style={styles.notificationIcon}>
-            <Icon name="bell" size={20} color={colors.highlight} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.notificationTitle}>{t('home.shoppingReminderTitle')}</Text>
-            <Text style={styles.notificationBody}>
-              {t('home.shoppingReminderBody', { day: locale.weekdays[profile.giornoSpesa] ?? profile.giornoSpesa })}
-            </Text>
-          </View>
-        </Card>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + HEADER_HEIGHT + spacing.lg }]} showsVerticalScrollIndicator={false}>
+        {profile.giorniSpesa.length > 0 && (
+          <Card variant="panelAlt" style={styles.notificationCard}>
+            <View style={styles.notificationIcon}>
+              <Icon name="bell" size={20} color={colors.highlight} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.notificationTitle}>{t('home.shoppingReminderTitle')}</Text>
+              <Text style={styles.notificationBody}>
+                {t('home.shoppingReminderBody', { day: profile.giorniSpesa.map((d) => locale.weekdays[d] ?? d).join(', ') })}
+              </Text>
+            </View>
+          </Card>
+        )}
 
         <Card style={styles.diaryCard}>
           <View style={styles.diaryHeader}>
@@ -139,6 +130,17 @@ export function HomeScreen() {
         </View>
       </ScrollView>
 
+      <View style={[styles.header, { height: insets.top + HEADER_HEIGHT }]}>
+        <AvocadoWaveHeader />
+        <View style={[styles.headerRow, { marginTop: insets.top + spacing.sm }]}>
+          <Avatar uri={profile.avatarUri} iconName={profile.avatarIcon as any} size={52} />
+          <View style={styles.headerText}>
+            <Text style={styles.name}>{profile.nome}</Text>
+            <Text style={styles.date}>{formatToday(intlLocale)}</Text>
+          </View>
+        </View>
+      </View>
+
       <DiaryEntryModal visible={diaryModalOpen} onClose={() => setDiaryModalOpen(false)} />
     </View>
   );
@@ -150,7 +152,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     overflow: 'hidden',
+    zIndex: 10,
   },
   headerRow: {
     flexDirection: 'row',

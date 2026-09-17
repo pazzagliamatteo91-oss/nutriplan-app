@@ -60,6 +60,23 @@ export function computeStreak(dates: string[]): number {
   return streak;
 }
 
+// Conta le sessioni negli ultimi 7 giorni (oggi incluso) e nei 7 giorni precedenti,
+// per confrontare la settimana corrente con quella passata (usato dall'anello di costanza).
+export function computeWeeklyComparison(dates: string[]): { thisWeek: number; lastWeek: number } {
+  const set = new Set(dates);
+  const today = new Date();
+  let thisWeek = 0;
+  let lastWeek = 0;
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    if (!set.has(toDateKey(d))) continue;
+    if (i < 7) thisWeek += 1;
+    else lastWeek += 1;
+  }
+  return { thisWeek, lastWeek };
+}
+
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: GAP },
   column: { gap: GAP },

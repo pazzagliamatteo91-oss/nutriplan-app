@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, Alert } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { colors, fonts, radii, spacing } from '../theme';
-import { ScreenHeader } from '../components/ScreenHeader';
+import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { Card } from '../components/Card';
 import { Icon } from '../components/Icon';
 import { Button } from '../components/Button';
@@ -27,6 +27,7 @@ function pointsFor(item: AnalysisValue): TrendPoint[] {
 }
 
 export function AnalysisScreen() {
+  const headerHeight = useScreenHeaderHeight();
   const { analysisValues, updateAnalysisValue, t, language } = useApp();
   const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState<AnalysisValue | null>(null);
@@ -70,8 +71,7 @@ export function AnalysisScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title={t('analysis.title')} />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]} showsVerticalScrollIndicator={false}>
         <Card style={styles.uploadCard} onPress={handleUpload}>
           <View style={styles.uploadIcon}>
             <Icon name="upload" size={20} color={colors.accentText} />
@@ -116,6 +116,8 @@ export function AnalysisScreen() {
         ))}
       </ScrollView>
 
+      <ScreenHeader title={t('analysis.title')} />
+
       <Modal visible={!!editing} transparent animationType="fade" onRequestClose={() => setEditing(null)}>
         <View style={styles.editOverlay}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setEditing(null)} />
@@ -159,7 +161,7 @@ export function AnalysisScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  content: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
   uploadCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg },
   uploadIcon: { width: 40, height: 40, borderRadius: radii.md, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   uploadTitle: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: colors.text },

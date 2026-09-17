@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ScrollView, Pressable } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, fonts, radii, spacing } from '../theme';
-import { ScreenHeader } from '../components/ScreenHeader';
+import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { Chip } from '../components/Chip';
 import { OptionGroup } from '../components/OptionGroup';
 import { RecipeCard } from '../components/RecipeCard';
@@ -17,58 +17,59 @@ import type { MealType } from '../data/types';
 type Props = NativeStackScreenProps<RecipesStackParamList, 'RecipesList'>;
 
 export function RecipesListScreen({ navigation, route }: Props) {
+  const headerHeight = useScreenHeaderHeight();
   const { profile, t, locale } = useApp();
   const [mealType, setMealType] = useState<MealType>((route.params?.mealType as MealType) ?? 'colazione');
-  const [cuisineFilter, setCuisineFilter] = useState<string | null>(route.params?.cuisineId ?? null);
+  const [cuisineFilter, setCuisineFilter] = useState<string[]>(route.params?.cuisineId ? [route.params.cuisineId] : []);
 
   const recipes = useMemo(
-    () => visibleRecipes(RECIPES, profile, { mealType, cuisineId: cuisineFilter ?? undefined }),
+    () => visibleRecipes(RECIPES, profile, { mealType, cuisineIds: cuisineFilter }),
     [profile, mealType, cuisineFilter]
   );
   const cuisines = useMemo(() => CUISINES.map((o) => ({ ...o, label: locale.cuisines[o.id] ?? o.label })), [locale]);
 
+  const toggleCuisine = (id: string) =>
+    setCuisineFilter((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
+
   return (
     <View style={styles.screen}>
-      <ScreenHeader
-        title={t('recipes.title')}
-        right={
-          <Pressable style={styles.planBtn} onPress={() => navigation.navigate('MealPlan')} hitSlop={8}>
-            <Icon name="calendarWeek" size={15} color={colors.accentText} />
-            <Text style={styles.planBtnLabel}>{t('recipes.planButton')}</Text>
-          </Pressable>
-        }
-      />
-      <View style={styles.mealTabs}>
-        {MEAL_TYPES.map((m) => {
-          const active = mealType === m.id;
-          return (
-            <Pressable key={m.id} style={[styles.mealTab, active && styles.mealTabActive]} onPress={() => setMealType(m.id as MealType)}>
-              <Icon name={m.icon} size={16} color={active ? colors.accentText : colors.textMuted} />
-              <Text style={[styles.mealTabLabel, active && styles.mealTabLabelActive]}>{locale.mealTypes[m.id] ?? m.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
       <FlatList
         data={recipes}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingTop: headerHeight + spacing.md }]}
         ListHeaderComponent={
-          <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>{t('recipes.filterByCuisine')}</Text>
-            <View style={styles.quickChips}>
-              <Chip label={t('common.all')} selected={cuisineFilter === null} onPress={() => setCuisineFilter(null)} />
-              <Chip label={t('recipes.misc')} selected={cuisineFilter === 'varie'} onPress={() => setCuisineFilter('varie')} />
+          <View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.mealTabs}
+            >
+              {MEAL_TYPES.map((m) => {
+                const active = mealType === m.id;
+                return (
+                  <Pressable key={m.id} style={[styles.mealTab, active && styles.mealTabActive]} onPress={() => setMealType(m.id as MealType)}>
+                    <Icon name={m.icon} size={16} color={active ? colors.accentText : colors.textMuted} />
+                    <Text style={[styles.mealTabLabel, active && styles.mealTabLabelActive]}>{locale.mealTypes[m.id] ?? m.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+
+            <View style={styles.filterSection}>
+              <Text style={styles.filterLabel}>{t('recipes.filterByCuisine')}</Text>
+              <View style={styles.quickChips}>
+                <Chip label={t('common.all')} selected={cuisineFilter.length === 0} onPress={() => setCuisineFilter([])} />
+                <Chip label={t('recipes.misc')} selected={cuisineFilter.includes('varie')} onPress={() => toggleCuisine('varie')} />
+              </View>
+              <OptionGroup
+                options={cuisines}
+                visibleCount={6}
+                selected={cuisineFilter}
+                onToggle={toggleCuisine}
+                otherLabel={t('common.other')}
+                lessLabel={t('common.less')}
+              />
             </View>
-            <OptionGroup
-              options={cuisines}
-              visibleCount={6}
-              selected={cuisineFilter ? [cuisineFilter] : []}
-              onToggle={(id) => setCuisineFilter((prev) => (prev === id ? null : id))}
-              otherLabel={t('common.other')}
-              lessLabel={t('common.less')}
-            />
           </View>
         }
         renderItem={({ item }) => (
@@ -84,6 +85,16 @@ export function RecipesListScreen({ navigation, route }: Props) {
           </View>
         }
       />
+
+      <ScreenHeader
+        title={t('recipes.title')}
+        right={
+          <Pressable style={styles.planBtn} onPress={() => navigation.navigate('MealPlan')} hitSlop={8}>
+            <Icon name="calendarWeek" size={15} color={colors.accentText} />
+            <Text style={styles.planBtnLabel}>{t('recipes.planButton')}</Text>
+          </Pressable>
+        }
+      />
     </View>
   );
 }
@@ -97,8 +108,7 @@ const styles = StyleSheet.create({
   planBtnLabel: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.accentText },
   mealTabs: {
     flexDirection: 'row',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
     gap: spacing.sm,
   },
   mealTab: {
@@ -113,7 +123,7 @@ const styles = StyleSheet.create({
   mealTabActive: { backgroundColor: colors.accent },
   mealTabLabel: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.textMuted },
   mealTabLabelActive: { color: colors.accentText },
-  list: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
   filterSection: { marginBottom: spacing.md },
   filterLabel: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.textMuted, marginBottom: spacing.sm, textTransform: 'uppercase' },
   quickChips: { flexDirection: 'row', marginBottom: spacing.xs },

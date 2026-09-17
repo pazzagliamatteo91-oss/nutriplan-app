@@ -88,30 +88,7 @@ export function ProfileScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.header, { minHeight: insets.top + HEADER_HEIGHT }]}>
-        <AvocadoWaveHeader />
-        <View style={[styles.headerRow, { marginTop: insets.top + spacing.sm }]}>
-          <Avatar
-            uri={profile.avatarUri}
-            iconName={profile.avatarIcon as IconName}
-            size={64}
-            editable
-            onPress={() => setAvatarModalOpen(true)}
-          />
-          <Pressable
-            onPress={() => {
-              setDraftName(profile.nome);
-              setNameModalOpen(true);
-            }}
-            style={{ flex: 1 }}
-          >
-            <Text style={styles.name}>{profile.nome}</Text>
-            <Text style={styles.editHint}>{t('profile.editNameHint')}</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + HEADER_HEIGHT + spacing.lg }]} showsVerticalScrollIndicator={false}>
         <SectionHeader title={t('profile.parameters')} />
         <Card style={styles.rowsCard}>
           <ListRow label={t('profile.age')} value={t('profile.ageUnit', { n: profile.eta })} onPress={() => setActivePicker('eta')} />
@@ -175,6 +152,29 @@ export function ProfileScreen() {
         </Card>
       </ScrollView>
 
+      <View style={[styles.header, { height: insets.top + HEADER_HEIGHT }]}>
+        <AvocadoWaveHeader />
+        <View style={[styles.headerRow, { marginTop: insets.top + spacing.sm }]}>
+          <Avatar
+            uri={profile.avatarUri}
+            iconName={profile.avatarIcon as IconName}
+            size={64}
+            editable
+            onPress={() => setAvatarModalOpen(true)}
+          />
+          <Pressable
+            onPress={() => {
+              setDraftName(profile.nome);
+              setNameModalOpen(true);
+            }}
+            style={{ flex: 1 }}
+          >
+            <Text style={styles.name}>{profile.nome}</Text>
+            <Text style={styles.editHint}>{t('profile.editNameHint')}</Text>
+          </Pressable>
+        </View>
+      </View>
+
       {pickerConfig && (
         <WheelPickerModal
           visible={!!activePicker}
@@ -236,7 +236,12 @@ export function ProfileScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     overflow: 'hidden',
+    zIndex: 10,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg },
   name: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.accentText },

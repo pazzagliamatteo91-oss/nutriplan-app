@@ -49,12 +49,12 @@ export function intoleranceWarnings(recipe: Recipe, profile: UserProfile): strin
 export function visibleRecipes(
   recipes: Recipe[],
   profile: UserProfile,
-  options: { mealType?: string; cuisineId?: string }
+  options: { mealType?: string; cuisineIds?: string[] }
 ): Recipe[] {
   return recipes.filter((r) => {
     if (options.mealType && r.tipoPasto !== options.mealType) return false;
-    if (options.cuisineId) {
-      if (r.cucina !== options.cuisineId) return false;
+    if (options.cuisineIds && options.cuisineIds.length > 0) {
+      if (!options.cuisineIds.includes(r.cucina)) return false;
     } else if (profile.cucinePreferite.length > 0) {
       if (!profile.cucinePreferite.includes(r.cucina)) return false;
     }

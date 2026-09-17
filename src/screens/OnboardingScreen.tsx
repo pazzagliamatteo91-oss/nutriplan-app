@@ -13,7 +13,7 @@ import { OptionDict, LanguageCode } from '../i18n';
 
 type Draft = Pick<
   UserProfile,
-  'nome' | 'obiettivo' | 'stileVita' | 'cucinePreferite' | 'restrizioni' | 'intolleranze' | 'allergie' | 'sportPreferiti' | 'giornoSpesa'
+  'nome' | 'obiettivo' | 'stileVita' | 'cucinePreferite' | 'restrizioni' | 'intolleranze' | 'allergie' | 'sportPreferiti' | 'giorniSpesa'
 >;
 
 type StepId = 'welcome' | 'goal' | 'lifestyle' | 'cuisines' | 'restrictions' | 'intolerances' | 'allergies' | 'sports' | 'shoppingDay' | 'summary';
@@ -36,14 +36,14 @@ export function OnboardingScreen() {
     intolleranze: profile.intolleranze,
     allergie: profile.allergie,
     sportPreferiti: profile.sportPreferiti,
-    giornoSpesa: profile.giornoSpesa,
+    giorniSpesa: profile.giorniSpesa,
   });
 
   const step = STEPS[stepIndex];
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === STEPS.length - 1;
 
-  const toggle = (field: 'cucinePreferite' | 'restrizioni' | 'intolleranze' | 'allergie' | 'sportPreferiti', id: string) => {
+  const toggle = (field: 'cucinePreferite' | 'restrizioni' | 'intolleranze' | 'allergie' | 'sportPreferiti' | 'giorniSpesa', id: string) => {
     setDraft((d) => {
       const list = d[field];
       const next = list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
@@ -232,10 +232,13 @@ export function OnboardingScreen() {
         return (
           <>
             <StepHeader title={t('onboarding.shoppingDayTitle')} subtitle={t('onboarding.shoppingDaySubtitle')} />
-            <SingleChoiceList
+            <OptionGroup
               options={WEEKDAYS.map((w) => ({ id: w, label: locale.weekdays[w] ?? w }))}
-              value={draft.giornoSpesa}
-              onChange={(id) => setDraft((d) => ({ ...d, giornoSpesa: id }))}
+              visibleCount={WEEKDAYS.length}
+              selected={draft.giorniSpesa}
+              onToggle={(id) => toggle('giorniSpesa', id)}
+              otherLabel={t('common.other')}
+              lessLabel={t('common.less')}
             />
           </>
         );
@@ -254,7 +257,11 @@ export function OnboardingScreen() {
                 label={t('onboarding.summarySportsLabel')}
                 value={draft.sportPreferiti.length ? draft.sportPreferiti.map((s) => locale.mainSports[s] ?? s).join(', ') : none}
               />
-              <SummaryRow label={t('onboarding.summaryShoppingDayLabel')} value={locale.weekdays[draft.giornoSpesa] ?? draft.giornoSpesa} last />
+              <SummaryRow
+                label={t('onboarding.summaryShoppingDayLabel')}
+                value={draft.giorniSpesa.length ? draft.giorniSpesa.map((g) => locale.weekdays[g] ?? g).join(', ') : none}
+                last
+              />
             </View>
           </>
         );

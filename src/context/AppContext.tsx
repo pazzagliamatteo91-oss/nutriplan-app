@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { UserProfile, AnalysisValue, ShoppingItem, MealPlanEntry, MealType, DiaryEntry, bi } from '../data/types';
+import { UserProfile, AnalysisValue, ShoppingItem, MealPlanEntry, MealType, DiaryEntry, WorkoutLogEntry, bi } from '../data/types';
 import { generateMockAnalysis, noteForValue } from '../data/analysisParams';
 import { generateShoppingList, ShoppingScale } from '../data/shopping';
 import { generateMockDiary } from '../data/diary';
@@ -30,7 +30,7 @@ export const DEFAULT_PROFILE: UserProfile = {
   cucinePreferite: ['mediterranea', 'giapponese'],
   restrizioni: [],
   sportPreferiti: ['corsa', 'palestra'],
-  giornoSpesa: 'Sabato',
+  giorniSpesa: ['Sabato'],
   dispositivi: { garmin: true, apple_watch: false, amazfit: false },
   onboardingCompletato: false,
 };
@@ -43,10 +43,10 @@ type PersistedState = {
   shoppingItems: ShoppingItem[];
   analysisValues: AnalysisValue[];
   workoutSelection: WorkoutSelection;
-  workoutLog: string[];
+  workoutLog: WorkoutLogEntry[];
   mealPlan: MealPlanEntry[];
   diaryEntries: DiaryEntry[];
-  shoppingReminderId: string | null;
+  shoppingReminderIds: string[];
   language: LanguageCode;
 };
 
@@ -67,9 +67,9 @@ type AppContextValue = {
 
   workoutSelection: WorkoutSelection;
   setWorkoutSelection: (sel: WorkoutSelection) => void;
-  workoutLog: string[];
+  workoutLog: WorkoutLogEntry[];
   lastWorkoutLog: string | null;
-  logWorkoutToday: () => void;
+  logWorkoutToday: (sportId: string) => void;
 
   mealPlan: MealPlanEntry[];
   setMealPlanEntry: (data: string, pasto: MealType, recipeId: string | null) => void;
@@ -94,12 +94,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>(() => generateShoppingList('settimana'));
   const [analysisValues, setAnalysisValues] = useState<AnalysisValue[]>(() => generateMockAnalysis());
   const [workoutSelection, setWorkoutSelectionState] = useState<WorkoutSelection>({ sportId: 'corsa', livello: 'Intermedio' });
-  const [workoutLog, setWorkoutLog] = useState<string[]>(() => generateMockWorkoutLog());
+  const [workoutLog, setWorkoutLog] = useState<WorkoutLogEntry[]>(() => generateMockWorkoutLog());
   const [mealPlan, setMealPlan] = useState<MealPlanEntry[]>([]);
   const [diaryEntries, setDiaryEntries] = useState<DiaryEntry[]>(() => generateMockDiary());
-  const [shoppingReminderId, setShoppingReminderId] = useState<string | null>(null);
+  const [shoppingReminderIds, setShoppingReminderIds] = useState<string[]>([]);
   const [language, setLanguageState] = useState<LanguageCode>(DEFAULT_LANGUAGE);
-  const reminderIdRef = useRef<string | null>(null);
+  const reminderIdsRef = useRef<string[]>([]);
   const recipesById = useMemo(() => new Map(RECIPES.map((r) => [r.id, r])), []);
   const t = useMemo(() => createTranslator(language), [language]);
   const locale = useMemo(() => LOCALES[language] ?? LOCALES[DEFAULT_LANGUAGE], [language]);
@@ -113,19 +113,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           // Chi aveva già uno stato salvato prima dell'introduzione dell'onboarding
           // non deve rivederlo: il flag manca solo per chi ha già usato l'app.
           const onboardingCompletato = parsed.profile?.onboardingCompletato ?? true;
-          setProfile({ ...DEFAULT_PROFILE, ...parsed.profile, onboardingCompletato });
+          // Compatibilità con lo stato salvato prima del passaggio a più giorni spesa:
+          // chi aveva solo il vecchio "giornoSpesa" (stringa) lo eredita come primo giorno.
+          const legacyGiornoSpesa = (parsed.profile as unknown as { giornoSpesa?: string })?.giornoSpesa;
+          const giorniSpesa = parsed.profile?.giorniSpesa ?? (legacyGiornoSpesa ? [legacyGiornoSpesa] : undefined);
+          setProfile({ ...DEFAULT_PROFILE, ...parsed.profile, ...(giorniSpesa ? { giorniSpesa } : {}), onboardingCompletato });
           setShoppingScaleState(parsed.shoppingScale ?? 'settimana');
           setShoppingItems(parsed.shoppingItems ?? generateShoppingList('settimana'));
           setAnalysisValues(parsed.analysisValues ?? generateMockAnalysis());
-          setWorkoutSelectionState(parsed.workoutSelection ?? { sportId: 'corsa', livello: 'Intermedio' });
-          // Compatibilità con lo stato salvato prima dell'introduzione dello storico allenamenti:
-          // chi aveva solo lastWorkoutLog lo eredita come unica voce del nuovo array.
+          const restoredSelection = parsed.workoutSelection ?? { sportId: 'corsa', livello: 'Intermedio' };
+          setWorkoutSelectionState(restoredSelection);
+          // Compatibilità con lo stato salvato prima dell'introduzione dello storico allenamenti
+          // e prima dell'associazione di ogni voce a uno sport: chi aveva solo lastWorkoutLog lo
+          // eredita come unica voce, chi aveva un array di sole date le associa allo sport corrente.
           const legacyLastLog = (parsed as unknown as { lastWorkoutLog?: string | null }).lastWorkoutLog;
-          setWorkoutLog(parsed.workoutLog ?? (legacyLastLog ? [toDateKey(new Date(legacyLastLog))] : []));
+          const legacyWorkoutLog = parsed.workoutLog as unknown as string[] | WorkoutLogEntry[] | undefined;
+          const normalizedLog: WorkoutLogEntry[] = Array.isArray(legacyWorkoutLog)
+            ? legacyWorkoutLog.map((e) =>
+                typeof e === 'string' ? { data: e, sportId: restoredSelection.sportId } : e
+              )
+            : legacyLastLog
+              ? [{ data: toDateKey(new Date(legacyLastLog)), sportId: restoredSelection.sportId }]
+              : [];
+          setWorkoutLog(normalizedLog);
           setMealPlan(parsed.mealPlan ?? []);
           setDiaryEntries(parsed.diaryEntries ?? generateMockDiary());
-          setShoppingReminderId(parsed.shoppingReminderId ?? null);
-          reminderIdRef.current = parsed.shoppingReminderId ?? null;
+          setShoppingReminderIds(parsed.shoppingReminderIds ?? []);
+          reminderIdsRef.current = parsed.shoppingReminderIds ?? [];
           setLanguageState(parsed.language ?? DEFAULT_LANGUAGE);
         }
       } catch {
@@ -140,21 +154,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!loaded) return;
     const state: PersistedState = {
       profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, workoutLog,
-      mealPlan, diaryEntries, shoppingReminderId, language,
+      mealPlan, diaryEntries, shoppingReminderIds, language,
     };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
-  }, [loaded, profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, workoutLog, mealPlan, diaryEntries, shoppingReminderId, language]);
+  }, [loaded, profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, workoutLog, mealPlan, diaryEntries, shoppingReminderIds, language]);
 
-  // Mantiene il promemoria spesa allineato al giorno scelto nel profilo:
-  // ripianifica la notifica locale ogni volta che il giorno cambia (incluso al primo avvio).
+  // Mantiene i promemoria spesa allineati ai giorni scelti nel profilo:
+  // ripianifica le notifiche locali ogni volta che i giorni cambiano (incluso al primo avvio).
   useEffect(() => {
     if (!loaded) return;
-    scheduleShoppingReminder(profile.giornoSpesa, reminderIdRef.current).then((id) => {
-      reminderIdRef.current = id;
-      setShoppingReminderId(id);
+    scheduleShoppingReminder(profile.giorniSpesa, reminderIdsRef.current).then((ids) => {
+      reminderIdsRef.current = ids;
+      setShoppingReminderIds(ids);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loaded, profile.giornoSpesa]);
+  }, [loaded, profile.giorniSpesa]);
 
   const updateProfile = useCallback((patch: Partial<UserProfile>) => {
     setProfile((p) => ({ ...p, ...patch }));
@@ -207,12 +221,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setWorkoutSelectionState(sel);
   }, []);
 
-  const logWorkoutToday = useCallback(() => {
+  const logWorkoutToday = useCallback((sportId: string) => {
     const today = toDateKey(new Date());
-    setWorkoutLog((prev) => (prev.includes(today) ? prev : [...prev, today]));
+    setWorkoutLog((prev) =>
+      prev.some((e) => e.data === today && e.sportId === sportId) ? prev : [...prev, { data: today, sportId }]
+    );
   }, []);
 
-  const lastWorkoutLog = workoutLog.length ? workoutLog[workoutLog.length - 1] : null;
+  const lastWorkoutLog = workoutLog.length ? workoutLog[workoutLog.length - 1].data : null;
 
   const setMealPlanEntry = useCallback((data: string, pasto: MealType, recipeId: string | null) => {
     setMealPlan((prev) => {
@@ -239,13 +255,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const items = aggregateMealPlanToShoppingItems(mealPlan, dates, recipesById);
       setShoppingItems(items);
       setShoppingScaleState(scale);
-      scheduleShoppingReminder(profile.giornoSpesa, reminderIdRef.current).then((id) => {
-        reminderIdRef.current = id;
-        setShoppingReminderId(id);
+      scheduleShoppingReminder(profile.giorniSpesa, reminderIdsRef.current).then((ids) => {
+        reminderIdsRef.current = ids;
+        setShoppingReminderIds(ids);
       });
       return items.length;
     },
-    [mealPlan, recipesById, profile.giornoSpesa]
+    [mealPlan, recipesById, profile.giorniSpesa]
   );
 
   const value = useMemo(

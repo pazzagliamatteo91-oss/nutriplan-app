@@ -515,6 +515,45 @@ function comboMain(bank: CuisineBank, tipoPasto: MealType, count: number, kcalBa
   return out;
 }
 
+function comboBreakfastName(protein: Bilingual, style: CuisineBank['styles'][number], base: Bilingual): Bilingual {
+  const it = `${protein.it} ${style.label.it} con ${base.it.toLowerCase()}`;
+  const en = style.enPrefix
+    ? `${style.label.en} ${protein.en.toLowerCase()} with ${base.en.toLowerCase()}`
+    : `${protein.en} ${style.label.en} with ${base.en.toLowerCase()}`;
+  return bi(capitalize(it), capitalize(en));
+}
+
+// Colazioni generate a partire dalla banca ingredienti: usate per integrare le
+// colazioni scritte a mano (cucine esistenti) e per coprire le nuove cucine.
+function comboBreakfast(bank: CuisineBank, count: number): Recipe[] {
+  const out: Recipe[] = [];
+  for (let i = 0; i < count; i++) {
+    const protein = bank.proteins[(i + 1) % bank.proteins.length];
+    const base = bank.bases[i % bank.bases.length];
+    const style = bank.styles[(i + 2) % bank.styles.length];
+    const nome = comboBreakfastName(protein.nome, style, base.nome);
+    out.push(
+      withDefaults({
+        nome,
+        tipoPasto: 'colazione',
+        cucina: bank.id,
+        tagDietetico: protein.tag,
+        tempoMinuti: 8 + (i % 3) * 4,
+        kcal: 300 + (i % 3) * 30,
+        lattosio: !!protein.lattosio,
+        glutine: !!base.glutine,
+        crostacei: !!protein.crostacei,
+        alcol: false,
+        ingredienti: [
+          { nome: protein.nome, quantita: bi('100 g', '100 g') },
+          { nome: base.nome, quantita: bi('60 g', '60 g') },
+        ],
+      })
+    );
+  }
+  return out;
+}
+
 function comboSnack(bank: CuisineBank, count: number): Recipe[] {
   const out: Recipe[] = [];
   for (let i = 0; i < count; i++) {
@@ -543,12 +582,18 @@ function comboSnack(bank: CuisineBank, count: number): Recipe[] {
   return out;
 }
 
+const HANDWRITTEN_BREAKFAST_CUISINES = new Set(BREAKFASTS.map((r) => r.cucina));
+
 function generateAllRecipes(): Recipe[] {
   const all: Recipe[] = [...BREAKFASTS];
   for (const bank of CUISINE_BANKS) {
-    all.push(...comboMain(bank, 'pranzo', 5, 480, 20));
-    all.push(...comboMain(bank, 'cena', 5, 420, 25));
-    all.push(...comboSnack(bank, 4));
+    // Le cucine con colazioni scritte a mano ricevono 3 colazioni extra generate
+    // per aumentare la varieta'; le nuove cucine (senza colazioni scritte a mano)
+    // ne ricevono 4 per coprire comunque il pasto.
+    all.push(...comboBreakfast(bank, HANDWRITTEN_BREAKFAST_CUISINES.has(bank.id) ? 3 : 4));
+    all.push(...comboMain(bank, 'pranzo', 7, 480, 20));
+    all.push(...comboMain(bank, 'cena', 7, 420, 25));
+    all.push(...comboSnack(bank, 6));
   }
   return all;
 }

@@ -26,15 +26,17 @@ Notifications.setNotificationHandler({
 });
 
 // Promemoria spesa: notifica locale reale (nessun backend), schedulata ogni
-// settimana nel giorno scelto dal profilo. Su web le notifiche locali non sono
-// supportate allo stesso modo: l'operazione viene saltata silenziosamente.
-export async function scheduleShoppingReminder(giorno: string, previousId: string | null): Promise<string | null> {
-  if (Platform.OS === 'web' || !WEEKDAYS.includes(giorno)) return null;
+// settimana in ciascuno dei giorni scelti dal profilo (uno o piu'). Su web le
+// notifiche locali non sono supportate allo stesso modo: l'operazione viene
+// saltata silenziosamente.
+export async function scheduleShoppingReminder(giorni: string[], previousIds: string[]): Promise<string[]> {
+  if (Platform.OS === 'web') return [];
 
   try {
-    if (previousId) {
-      await Notifications.cancelScheduledNotificationAsync(previousId).catch(() => {});
-    }
+    await Promise.all(previousIds.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})));
+
+    const validDays = giorni.filter((g) => WEEKDAYS.includes(g));
+    if (validDays.length === 0) return [];
 
     const { status: existing } = await Notifications.getPermissionsAsync();
     let granted = existing === 'granted';
@@ -42,31 +44,35 @@ export async function scheduleShoppingReminder(giorno: string, previousId: strin
       const { status } = await Notifications.requestPermissionsAsync();
       granted = status === 'granted';
     }
-    if (!granted) return null;
+    if (!granted) return [];
 
-    const weekday = JS_DAY_FOR_ITALIAN[giorno] + 1;
-    const id = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'Promemoria spesa',
-        body: `Oggi è ${giorno}: è il giorno che hai scelto per fare la spesa!`,
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-        weekday,
-        hour: 9,
-        minute: 0,
-      },
-    });
-    return id;
+    const ids = await Promise.all(
+      validDays.map((giorno) => {
+        const weekday = JS_DAY_FOR_ITALIAN[giorno] + 1;
+        return Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'Promemoria spesa',
+            body: `Oggi è ${giorno}: è uno dei giorni che hai scelto per fare la spesa!`,
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+            weekday,
+            hour: 9,
+            minute: 0,
+          },
+        });
+      })
+    );
+    return ids;
   } catch {
-    return null;
+    return [];
   }
 }
 
-export async function cancelShoppingReminder(id: string | null) {
-  if (!id) return;
+export async function cancelShoppingReminders(ids: string[]) {
+  if (ids.length === 0) return;
   try {
-    await Notifications.cancelScheduledNotificationAsync(id);
+    await Promise.all(ids.map((id) => Notifications.cancelScheduledNotificationAsync(id)));
   } catch {
     // ignore
   }

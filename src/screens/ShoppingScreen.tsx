@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import { colors, fonts, radii, spacing } from '../theme';
-import { ScreenHeader } from '../components/ScreenHeader';
+import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader';
 import { Card } from '../components/Card';
 import { Icon, IconName } from '../components/Icon';
 import { Button } from '../components/Button';
@@ -18,14 +18,14 @@ const SCALE_OPTIONS: { id: ShoppingScale; icon: IconName }[] = [
 ];
 
 export function ShoppingScreen() {
+  const headerHeight = useScreenHeaderHeight();
   const { profile, updateProfile, shoppingScale, setShoppingScale, shoppingItems, toggleShoppingItem, t, locale, language } = useApp();
   const [partnerSheetOpen, setPartnerSheetOpen] = useState(false);
   const scaleLabels: Record<ShoppingScale, string> = { giorno: t('shopping.scaleDay'), settimana: t('shopping.scaleWeek'), mese: t('shopping.scaleMonth') };
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title={t('shopping.title')} />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]} showsVerticalScrollIndicator={false}>
         <Text style={styles.label}>{t('shopping.interval')}</Text>
         <View style={styles.scaleRow}>
           {SCALE_OPTIONS.map((opt) => {
@@ -39,12 +39,21 @@ export function ShoppingScreen() {
           })}
         </View>
 
-        <Text style={styles.label}>{t('shopping.shoppingDayReminder')}</Text>
+        <Text style={styles.label}>
+          {shoppingScale === 'giorno' ? t('shopping.shoppingDayReminder') : t('shopping.shoppingDaysReminder')}
+        </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.daysScroll}>
           {WEEKDAYS.map((day) => {
-            const active = profile.giornoSpesa === day;
+            const active = profile.giorniSpesa.includes(day);
+            const onPress =
+              shoppingScale === 'giorno'
+                ? () => updateProfile({ giorniSpesa: [day] })
+                : () =>
+                    updateProfile({
+                      giorniSpesa: active ? profile.giorniSpesa.filter((d) => d !== day) : [...profile.giorniSpesa, day],
+                    });
             return (
-              <Pressable key={day} style={[styles.dayChip, active && styles.dayChipActive]} onPress={() => updateProfile({ giornoSpesa: day })}>
+              <Pressable key={day} style={[styles.dayChip, active && styles.dayChipActive]} onPress={onPress}>
                 <Text style={[styles.dayLabel, active && styles.dayLabelActive]}>{locale.weekdays[day] ?? day}</Text>
               </Pressable>
             );
@@ -52,7 +61,11 @@ export function ShoppingScreen() {
         </ScrollView>
         <View style={styles.reminderNote}>
           <Icon name="bell" size={14} color={colors.highlight} />
-          <Text style={styles.reminderText}>{t('shopping.reminderActiveFor', { day: locale.weekdays[profile.giornoSpesa] ?? profile.giornoSpesa })}</Text>
+          <Text style={styles.reminderText}>
+            {profile.giorniSpesa.length > 0
+              ? t('shopping.reminderActiveFor', { day: profile.giorniSpesa.map((d) => locale.weekdays[d] ?? d).join(', ') })
+              : t('shopping.reminderInactive')}
+          </Text>
         </View>
 
         {SHOPPING_CATEGORIES.map((cat) => {
@@ -92,6 +105,8 @@ export function ShoppingScreen() {
         <Button label={t('shopping.exportFullList')} onPress={() => setPartnerSheetOpen(true)} style={{ marginBottom: spacing.xxl }} />
       </ScrollView>
 
+      <ScreenHeader title={t('shopping.title')} />
+
       <PartnerSheet visible={partnerSheetOpen} title={t('recipes.exportSelectListTitle')} onClose={() => setPartnerSheetOpen(false)} />
     </View>
   );
@@ -99,7 +114,7 @@ export function ShoppingScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.lg },
+  content: { paddingHorizontal: spacing.lg },
   label: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.textMuted, textTransform: 'uppercase', marginBottom: spacing.sm },
   scaleRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
   scaleBtn: {

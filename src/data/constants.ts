@@ -2,7 +2,7 @@ import { Option } from '../components/OptionGroup';
 import { Bilingual } from './types';
 import { LOCALES } from '../i18n';
 
-// Cucine: 6 principali (con ricette in libreria) + 12 aggiuntive (solo filtro, in attesa di contenuti).
+// Tutte le cucine hanno ricette in libreria.
 export const CUISINES: Option[] = [
   { id: 'mediterranea', label: 'Mediterranea' },
   { id: 'giapponese', label: 'Giapponese' },
@@ -31,6 +31,18 @@ export const CUISINES_WITH_RECIPES = [
   'indiana',
   'mediorientale',
   'sudamericana',
+  'cinese',
+  'francese',
+  'spagnola',
+  'greca',
+  'thailandese',
+  'statunitense',
+  'peruviana',
+  'turca',
+  'libanese',
+  'coreana',
+  'texmex',
+  'vegana',
   'varie',
 ] as const;
 
