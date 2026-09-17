@@ -17,7 +17,7 @@ import { LANGUAGES, LanguageCode, OptionDict } from '../i18n';
 
 type PickerKey = 'eta' | 'peso' | 'altezza' | 'kcal' | 'proteine' | 'stileVita' | 'obiettivo' | 'lingua' | null;
 
-const HEADER_HEIGHT = 170;
+const HEADER_HEIGHT = 140;
 
 const ETA_OPTIONS = Array.from({ length: 90 - 14 + 1 }, (_, i) => 14 + i);
 const PESO_OPTIONS = Array.from({ length: 180 - 30 + 1 }, (_, i) => 30 + i);
@@ -236,10 +236,9 @@ export function ProfileScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   header: {
-    paddingHorizontal: spacing.lg,
     overflow: 'hidden',
   },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg },
   name: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.accentText },
   editHint: { fontFamily: fonts.body, fontSize: 12, color: colors.accentText, opacity: 0.7, marginTop: 2 },
   content: { padding: spacing.lg },

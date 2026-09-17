@@ -19,7 +19,7 @@ import { toDateKey } from '../data/mealPlan';
 import { INTL_LOCALE, pick } from '../i18n';
 import type { RootTabParamList } from '../navigation/types';
 
-const HEADER_HEIGHT = 170;
+const HEADER_HEIGHT = 132;
 
 function formatToday(locale: string) {
   const label = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -150,13 +150,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    paddingHorizontal: spacing.lg,
     overflow: 'hidden',
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   headerText: {
     flex: 1,

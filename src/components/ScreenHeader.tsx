@@ -9,7 +9,7 @@ type Props = {
   right?: React.ReactNode;
 };
 
-const HEADER_HEIGHT = 170;
+const HEADER_HEIGHT = 132;
 
 // Header superiore "a fetta di avocado": l'area colorata scende ben oltre il
 // titolo, con un bordo inferiore a onda (non un semplice angolo arrotondato).
