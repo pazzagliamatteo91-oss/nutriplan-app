@@ -103,6 +103,8 @@ export const en: Locale = {
     suggestionTitle: 'Suggested change',
     suggestionBody: 'Based on the activity detected by your devices, you could add a light recovery session this week.',
     otherDisciplinesTitle: 'Other disciplines',
+    consistencyTitle: 'Your consistency',
+    streakLabel: '{n}-day streak',
   },
   mealPlan: {
     title: 'Plan meals',

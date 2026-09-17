@@ -12,11 +12,13 @@ import { WORKOUT_LEVELS, SPORT_ICONS, specificoLabel, supportoLabel, generateWee
 import { WorkoutLevel } from '../data/types';
 import { sportDisplayName } from '../data/constants';
 import { pick } from '../i18n';
+import { ActivityGrid, computeStreak } from '../components/ActivityGrid';
 
 type SessionKind = 'specifico' | 'supporto';
 
 export function WorkoutScreen() {
-  const { profile, updateProfile, workoutSelection, setWorkoutSelection, lastWorkoutLog, logWorkoutToday, t, locale, language } = useApp();
+  const { profile, updateProfile, workoutSelection, setWorkoutSelection, workoutLog, lastWorkoutLog, logWorkoutToday, t, locale, language } = useApp();
+  const streak = useMemo(() => computeStreak(workoutLog), [workoutLog]);
   const sportLabel = (sportId: string) => pick(sportDisplayName(sportId), language);
   const [extendedOpen, setExtendedOpen] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
@@ -37,6 +39,19 @@ export function WorkoutScreen() {
     <View style={styles.screen}>
       <ScreenHeader title={t('workout.title')} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Card style={styles.consistencyCard}>
+          <View style={styles.consistencyHeader}>
+            <Text style={styles.consistencyTitle}>{t('workout.consistencyTitle')}</Text>
+            {streak > 0 && (
+              <View style={styles.streakPill}>
+                <Icon name="flame" size={13} color={colors.accent} />
+                <Text style={styles.streakLabel}>{t('workout.streakLabel', { n: streak })}</Text>
+              </View>
+            )}
+          </View>
+          <ActivityGrid dates={workoutLog} />
+        </Card>
+
         <Text style={styles.label}>{t('workout.sport')}</Text>
         <View style={styles.sportGrid}>
           {MAIN_SPORTS.map((s) => {
@@ -224,6 +239,11 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg, paddingBottom: spacing.xxl },
   label: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.textMuted, textTransform: 'uppercase', marginBottom: spacing.sm },
+  consistencyCard: { marginBottom: spacing.lg },
+  consistencyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
+  consistencyTitle: { fontFamily: fonts.heading, fontSize: 15, color: colors.text },
+  streakPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.panelAlt, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radii.pill },
+  streakLabel: { fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.accent },
   sportGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.xs },
   sportChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 12,

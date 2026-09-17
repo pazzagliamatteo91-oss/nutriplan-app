@@ -9,13 +9,21 @@ import { Button } from '../components/Button';
 import { useApp } from '../context/AppContext';
 import { generateMockAnalysis } from '../data/analysisParams';
 import { AnalysisValue, AnalysisStatus } from '../data/types';
-import { pick } from '../i18n';
+import { pick, INTL_LOCALE } from '../i18n';
+import { TrendChart, TrendPoint } from '../components/TrendChart';
 
 function statusColor(stato: AnalysisStatus) {
   if (stato === 'alto') return colors.berry;
   if (stato === 'basso') return colors.warning;
   if (stato === 'manuale') return colors.textFaint;
   return colors.accent;
+}
+
+// Storico + valore corrente, in ordine cronologico, pronti per il grafico di andamento.
+function pointsFor(item: AnalysisValue): TrendPoint[] {
+  const points: TrendPoint[] = item.history.map((h) => ({ data: h.data, valore: h.valore }));
+  if (item.valore !== null && item.entryDate) points.push({ data: item.entryDate, valore: item.valore });
+  return points.sort((a, b) => a.data.localeCompare(b.data));
 }
 
 export function AnalysisScreen() {
@@ -85,12 +93,17 @@ export function AnalysisScreen() {
                 </View>
               </View>
               <View style={styles.paramBottomRow}>
-                <Text style={styles.paramValue}>
-                  {item.valore !== null ? `${item.valore} ${item.unita}` : t('analysis.notInserted')}
-                </Text>
-                <Text style={styles.paramRange}>
-                  {t('analysis.range', { min: item.rangeMin, max: item.rangeMax })} {item.unita}
-                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.paramValue}>
+                    {item.valore !== null ? `${item.valore} ${item.unita}` : t('analysis.notInserted')}
+                  </Text>
+                  <Text style={styles.paramRange}>
+                    {t('analysis.range', { min: item.rangeMin, max: item.rangeMax })} {item.unita}
+                  </Text>
+                </View>
+                {pointsFor(item).length > 0 && (
+                  <TrendChart compact points={pointsFor(item)} rangeMin={item.rangeMin} rangeMax={item.rangeMax} endpointColor={statusColor(item.stato)} />
+                )}
               </View>
               {item.nota.it ? (
                 <View style={styles.noteRow}>
@@ -108,6 +121,18 @@ export function AnalysisScreen() {
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setEditing(null)} />
           <View style={styles.editCard}>
             <Text style={styles.editTitle}>{editing ? pick(editing.parametro, language) : ''}</Text>
+            {editing && pointsFor(editing).length > 0 && (
+              <View style={styles.editChart}>
+                <TrendChart
+                  points={pointsFor(editing)}
+                  rangeMin={editing.rangeMin}
+                  rangeMax={editing.rangeMax}
+                  endpointColor={statusColor(editing.stato)}
+                  unit={editing.unita}
+                  dateFormatter={(iso) => new Intl.DateTimeFormat(INTL_LOCALE[language], { day: 'numeric', month: 'short' }).format(new Date(iso))}
+                />
+              </View>
+            )}
             <TextInput
               value={draft}
               onChangeText={setDraft}
@@ -153,6 +178,7 @@ const styles = StyleSheet.create({
   editOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.overlay, padding: spacing.lg },
   editCard: { width: '100%', backgroundColor: colors.panel, borderRadius: radii.lg, padding: spacing.lg },
   editTitle: { fontFamily: fonts.heading, fontSize: 17, color: colors.text, marginBottom: spacing.md },
+  editChart: { marginBottom: spacing.md },
   editInput: { backgroundColor: colors.panelAlt, borderRadius: radii.md, paddingHorizontal: spacing.md, paddingVertical: 12, color: colors.text, fontFamily: fonts.body, fontSize: 15, marginBottom: spacing.md },
   editButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.md },
   editCancel: { paddingVertical: 8, paddingHorizontal: 12 },

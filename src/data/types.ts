@@ -51,6 +51,9 @@ export type UserProfile = {
 
 export type AnalysisStatus = 'basso' | 'normale' | 'alto' | 'manuale';
 
+// Punto storico: una lettura precedente del parametro, con la data in cui era il valore corrente.
+export type AnalysisHistoryPoint = { data: string; valore: number };
+
 export type AnalysisValue = {
   id: string;
   parametro: Bilingual;
@@ -60,6 +63,8 @@ export type AnalysisValue = {
   valore: number | null;
   stato: AnalysisStatus;
   nota: Bilingual;
+  entryDate: string | null; // 'YYYY-MM-DD' di quando è stato registrato il valore corrente
+  history: AnalysisHistoryPoint[]; // letture precedenti, più vecchie del valore corrente
 };
 
 export type WorkoutLevel = 'Base' | 'Intermedio' | 'Avanzato' | 'Agonista';

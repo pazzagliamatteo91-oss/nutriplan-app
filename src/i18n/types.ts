@@ -128,6 +128,8 @@ export type Locale = {
     suggestionTitle: string;
     suggestionBody: string;
     otherDisciplinesTitle: string;
+    consistencyTitle: string;
+    streakLabel: string; // {n}
   };
   mealPlan: {
     title: string;

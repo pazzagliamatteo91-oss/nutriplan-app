@@ -103,6 +103,8 @@ export const it: Locale = {
     suggestionTitle: 'Variante proposta',
     suggestionBody: "In base all'attività rilevata dai tuoi dispositivi, potresti aggiungere una sessione di recupero leggero questa settimana.",
     otherDisciplinesTitle: 'Altre discipline',
+    consistencyTitle: 'La tua costanza',
+    streakLabel: '{n} giorni di fila',
   },
   mealPlan: {
     title: 'Pianifica pasti',

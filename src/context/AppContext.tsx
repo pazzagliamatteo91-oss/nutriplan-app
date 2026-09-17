@@ -5,8 +5,9 @@ import { generateMockAnalysis, noteForValue } from '../data/analysisParams';
 import { generateShoppingList, ShoppingScale } from '../data/shopping';
 import { WEEKDAYS } from '../data/constants';
 import { WorkoutLevel } from '../data/types';
+import { generateMockWorkoutLog } from '../data/workouts';
 import { RECIPES } from '../data/recipes';
-import { PlanScale, aggregateMealPlanToShoppingItems } from '../data/mealPlan';
+import { PlanScale, aggregateMealPlanToShoppingItems, toDateKey } from '../data/mealPlan';
 import { scheduleShoppingReminder } from '../data/shoppingNotifications';
 import { LanguageCode, Locale, DEFAULT_LANGUAGE, LOCALES, createTranslator } from '../i18n';
 
@@ -41,7 +42,7 @@ type PersistedState = {
   shoppingItems: ShoppingItem[];
   analysisValues: AnalysisValue[];
   workoutSelection: WorkoutSelection;
-  lastWorkoutLog: string | null;
+  workoutLog: string[];
   mealPlan: MealPlanEntry[];
   shoppingReminderId: string | null;
   language: LanguageCode;
@@ -64,6 +65,7 @@ type AppContextValue = {
 
   workoutSelection: WorkoutSelection;
   setWorkoutSelection: (sel: WorkoutSelection) => void;
+  workoutLog: string[];
   lastWorkoutLog: string | null;
   logWorkoutToday: () => void;
 
@@ -86,7 +88,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>(() => generateShoppingList('settimana'));
   const [analysisValues, setAnalysisValues] = useState<AnalysisValue[]>(() => generateMockAnalysis());
   const [workoutSelection, setWorkoutSelectionState] = useState<WorkoutSelection>({ sportId: 'corsa', livello: 'Intermedio' });
-  const [lastWorkoutLog, setLastWorkoutLog] = useState<string | null>(null);
+  const [workoutLog, setWorkoutLog] = useState<string[]>(() => generateMockWorkoutLog());
   const [mealPlan, setMealPlan] = useState<MealPlanEntry[]>([]);
   const [shoppingReminderId, setShoppingReminderId] = useState<string | null>(null);
   const [language, setLanguageState] = useState<LanguageCode>(DEFAULT_LANGUAGE);
@@ -109,7 +111,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setShoppingItems(parsed.shoppingItems ?? generateShoppingList('settimana'));
           setAnalysisValues(parsed.analysisValues ?? generateMockAnalysis());
           setWorkoutSelectionState(parsed.workoutSelection ?? { sportId: 'corsa', livello: 'Intermedio' });
-          setLastWorkoutLog(parsed.lastWorkoutLog ?? null);
+          // Compatibilità con lo stato salvato prima dell'introduzione dello storico allenamenti:
+          // chi aveva solo lastWorkoutLog lo eredita come unica voce del nuovo array.
+          const legacyLastLog = (parsed as unknown as { lastWorkoutLog?: string | null }).lastWorkoutLog;
+          setWorkoutLog(parsed.workoutLog ?? (legacyLastLog ? [toDateKey(new Date(legacyLastLog))] : []));
           setMealPlan(parsed.mealPlan ?? []);
           setShoppingReminderId(parsed.shoppingReminderId ?? null);
           reminderIdRef.current = parsed.shoppingReminderId ?? null;
@@ -126,11 +131,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!loaded) return;
     const state: PersistedState = {
-      profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, lastWorkoutLog,
+      profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, workoutLog,
       mealPlan, shoppingReminderId, language,
     };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
-  }, [loaded, profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, lastWorkoutLog, mealPlan, shoppingReminderId, language]);
+  }, [loaded, profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, workoutLog, mealPlan, shoppingReminderId, language]);
 
   // Mantiene il promemoria spesa allineato al giorno scelto nel profilo:
   // ripianifica la notifica locale ogni volta che il giorno cambia (incluso al primo avvio).
@@ -180,8 +185,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       prev.map((a) => {
         if (a.id !== id) return a;
         if (value === null) return { ...a, valore: null, stato: 'manuale', nota: bi('', '') };
+        // Archivia la lettura precedente nello storico prima di sovrascriverla,
+        // così il grafico di andamento mostra anche il valore appena sostituito.
+        const history =
+          a.valore !== null && a.entryDate ? [...a.history, { data: a.entryDate, valore: a.valore }] : a.history;
         const { stato, nota } = noteForValue(id, value);
-        return { ...a, valore: value, stato, nota };
+        return { ...a, valore: value, stato, nota, entryDate: toDateKey(new Date()), history };
       })
     );
   }, []);
@@ -191,8 +200,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logWorkoutToday = useCallback(() => {
-    setLastWorkoutLog(new Date().toISOString());
+    const today = toDateKey(new Date());
+    setWorkoutLog((prev) => (prev.includes(today) ? prev : [...prev, today]));
   }, []);
+
+  const lastWorkoutLog = workoutLog.length ? workoutLog[workoutLog.length - 1] : null;
 
   const setMealPlanEntry = useCallback((data: string, pasto: MealType, recipeId: string | null) => {
     setMealPlan((prev) => {
@@ -234,6 +246,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       updateAnalysisValue,
       workoutSelection,
       setWorkoutSelection,
+      workoutLog,
       lastWorkoutLog,
       logWorkoutToday,
       mealPlan,
@@ -247,7 +260,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [
       loaded, profile, updateProfile, toggleListMember, shoppingScale, setShoppingScale, shoppingItems,
       toggleShoppingItem, resetShoppingListForScale, analysisValues, updateAnalysisValue, workoutSelection,
-      setWorkoutSelection, lastWorkoutLog, logWorkoutToday, mealPlan, setMealPlanEntry, generateShoppingListFromPlan,
+      setWorkoutSelection, workoutLog, lastWorkoutLog, logWorkoutToday, mealPlan, setMealPlanEntry, generateShoppingListFromPlan,
       language, setLanguage, t, locale,
     ]
   );

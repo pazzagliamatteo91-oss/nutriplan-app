@@ -1,6 +1,22 @@
 import { IconName } from '../components/Icon';
 import { WorkoutDay, WorkoutLevel, Exercise, Bilingual, bi } from './types';
 import { WEEKDAYS, sportDisplayName } from './constants';
+import { toDateKey } from './mealPlan';
+
+// Cronologia di esempio: allenamenti negli ultimi 28 giorni con la cadenza
+// tipica di un livello Intermedio (~4 sessioni/settimana), a scopo demo per
+// la card di costanza. Lascia libero oggi e ieri così l'utente può registrare
+// subito un nuovo allenamento e vederlo comparire.
+export function generateMockWorkoutLog(): string[] {
+  const daysAgo = [2, 4, 6, 9, 11, 13, 16, 18, 20, 23, 25, 27];
+  return daysAgo
+    .map((n) => {
+      const d = new Date();
+      d.setDate(d.getDate() - n);
+      return toDateKey(d);
+    })
+    .sort(); // ordine cronologico crescente: l'ultimo elemento è sempre il più recente
+}
 
 export const WORKOUT_LEVELS: WorkoutLevel[] = ['Base', 'Intermedio', 'Avanzato', 'Agonista'];
 

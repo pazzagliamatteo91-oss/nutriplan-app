@@ -1,4 +1,5 @@
-import { AnalysisStatus, AnalysisValue, Bilingual, bi } from './types';
+import { AnalysisStatus, AnalysisValue, AnalysisHistoryPoint, Bilingual, bi } from './types';
+import { toDateKey } from './mealPlan';
 
 type ParamDef = {
   id: string;
@@ -128,6 +129,26 @@ function statusFor(value: number, min: number, max: number): AnalysisStatus {
   return 'normale';
 }
 
+function dateDaysAgo(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return toDateKey(d);
+}
+
+// Genera 4 letture passate (150/110/70/35 giorni fa) che convergono verso il
+// valore corrente, per dare al grafico di andamento uno storico plausibile.
+function seedHistory(min: number, max: number, current: number): AnalysisHistoryPoint[] {
+  const offsets = [150, 110, 70, 35];
+  const start = randomInRange(min, max, false);
+  return offsets.map((daysAgo, idx) => {
+    const progress = (idx + 1) / (offsets.length + 1);
+    const base = start + (current - start) * progress;
+    const noise = (max - min) * 0.05 * (Math.random() - 0.5);
+    const valore = Math.round((base + noise) * 10) / 10;
+    return { data: dateDaysAgo(daysAgo), valore };
+  });
+}
+
 // Simula l'estrazione OCR del referto: alcuni parametri restano da inserire a mano ("manuale").
 export function generateMockAnalysis(): AnalysisValue[] {
   return ANALYSIS_PARAMS.map((p, index) => {
@@ -137,6 +158,7 @@ export function generateMockAnalysis(): AnalysisValue[] {
         id: p.id, parametro: p.parametro, unita: p.unita,
         rangeMin: p.rangeMin, rangeMax: p.rangeMax,
         valore: null, stato: 'manuale' as const, nota: NO_NOTE,
+        entryDate: null, history: [],
       };
     }
     const raw = randomInRange(p.rangeMin, p.rangeMax, true);
@@ -152,6 +174,8 @@ export function generateMockAnalysis(): AnalysisValue[] {
       valore,
       stato,
       nota,
+      entryDate: dateDaysAgo(3),
+      history: seedHistory(p.rangeMin, p.rangeMax, valore),
     };
   });
 }
