@@ -97,3 +97,15 @@ export type MealPlanEntry = {
   pasto: MealType;
   recipeId: string;
 };
+
+// Voce del diario alimentare: un alimento/pasto effettivamente registrato in una
+// data, a differenza di MealPlanEntry che è solo una pianificazione futura.
+export type DiaryEntry = {
+  id: string;
+  data: string; // 'YYYY-MM-DD'
+  pasto: MealType;
+  nome: Bilingual;
+  kcal: number;
+  proteine: number;
+  recipeId: string | null; // null per le voci inserite manualmente
+};

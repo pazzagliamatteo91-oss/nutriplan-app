@@ -188,6 +188,19 @@ export type Locale = {
     summaryShoppingDayLabel: string;
     noneSelected: string;
   };
+  diary: {
+    title: string;
+    addEntry: string;
+    fromRecipe: string;
+    manual: string;
+    noRecipesForMeal: string;
+    entryNamePlaceholder: string;
+    kcalLabel: string;
+    proteinLabel: string;
+    ofGoal: string; // {value} {goal}
+    ofGoalGrams: string; // {value} {goal}
+    emptyToday: string;
+  };
   weekdays: OptionDict;
   cuisines: OptionDict;
   dietTags: OptionDict;

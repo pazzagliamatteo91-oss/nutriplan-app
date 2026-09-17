@@ -1,17 +1,21 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { colors, fonts, radii, spacing } from '../theme';
 import { Avatar } from '../components/Avatar';
 import { Card } from '../components/Card';
-import { Icon } from '../components/Icon';
+import { Icon, IconName } from '../components/Icon';
 import { ColorIcon, ColorIconName } from '../components/ColorIcon';
+import { ProgressBar } from '../components/ProgressBar';
+import { DiaryEntryModal } from '../components/DiaryEntryModal';
 import { useApp } from '../context/AppContext';
 import { RECIPES } from '../data/recipes';
 import { visibleRecipes } from '../data/recipeFilters';
-import { INTL_LOCALE } from '../i18n';
+import { MEAL_TYPES } from '../data/constants';
+import { toDateKey } from '../data/mealPlan';
+import { INTL_LOCALE, pick } from '../i18n';
 import type { RootTabParamList } from '../navigation/types';
 
 function formatToday(locale: string) {
@@ -29,8 +33,14 @@ type Tile = {
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
-  const { profile, shoppingItems, analysisValues, lastWorkoutLog, language, t, locale } = useApp();
+  const { profile, shoppingItems, analysisValues, lastWorkoutLog, diaryEntries, removeDiaryEntry, language, t, locale } = useApp();
   const intlLocale = INTL_LOCALE[language] ?? 'it-IT';
+  const [diaryModalOpen, setDiaryModalOpen] = useState(false);
+
+  const today = toDateKey(new Date());
+  const todayEntries = useMemo(() => diaryEntries.filter((e) => e.data === today), [diaryEntries, today]);
+  const kcalToday = todayEntries.reduce((sum, e) => sum + e.kcal, 0);
+  const proteinToday = todayEntries.reduce((sum, e) => sum + e.proteine, 0);
 
   const recipeCount = useMemo(() => visibleRecipes(RECIPES, profile, {}).length, [profile]);
   const shoppingRemaining = shoppingItems.filter((i) => !i.spuntato).length;
@@ -71,6 +81,47 @@ export function HomeScreen() {
           </View>
         </Card>
 
+        <Card style={styles.diaryCard}>
+          <View style={styles.diaryHeader}>
+            <Text style={styles.diaryTitle}>{t('diary.title')}</Text>
+            <Pressable style={styles.diaryAddBtn} onPress={() => setDiaryModalOpen(true)} hitSlop={8}>
+              <Icon name="plus" size={16} color={colors.accentText} />
+            </Pressable>
+          </View>
+
+          <View style={styles.diaryStatRow}>
+            <Text style={styles.diaryStatLabel}>{t('diary.kcalLabel')}</Text>
+            <Text style={styles.diaryStatValue}>{t('diary.ofGoal', { value: kcalToday, goal: profile.kcalGiorno })}</Text>
+          </View>
+          <ProgressBar value={kcalToday} max={profile.kcalGiorno} color={colors.accent} />
+
+          <View style={[styles.diaryStatRow, { marginTop: spacing.md }]}>
+            <Text style={styles.diaryStatLabel}>{t('diary.proteinLabel')}</Text>
+            <Text style={styles.diaryStatValue}>{t('diary.ofGoalGrams', { value: proteinToday, goal: profile.proteineGiorno })}</Text>
+          </View>
+          <ProgressBar value={proteinToday} max={profile.proteineGiorno} color={colors.success} />
+
+          {todayEntries.length === 0 ? (
+            <Text style={styles.diaryEmpty}>{t('diary.emptyToday')}</Text>
+          ) : (
+            <View style={styles.diaryList}>
+              {todayEntries.map((entry) => {
+                const icon: IconName = (MEAL_TYPES.find((m) => m.id === entry.pasto)?.icon as IconName) ?? 'leaf';
+                return (
+                  <View key={entry.id} style={styles.diaryRow}>
+                    <Icon name={icon} size={15} color={colors.textMuted} />
+                    <Text style={styles.diaryRowName} numberOfLines={1}>{pick(entry.nome, language)}</Text>
+                    <Text style={styles.diaryRowKcal}>{entry.kcal} kcal</Text>
+                    <Pressable onPress={() => removeDiaryEntry(entry.id)} hitSlop={8}>
+                      <Icon name="close" size={14} color={colors.textFaint} />
+                    </Pressable>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </Card>
+
         <View style={styles.grid}>
           {tiles.map((tile) => (
             <Card key={tile.key} style={styles.tile} onPress={() => navigation.navigate(tile.key)}>
@@ -83,6 +134,8 @@ export function HomeScreen() {
           ))}
         </View>
       </ScrollView>
+
+      <DiaryEntryModal visible={diaryModalOpen} onClose={() => setDiaryModalOpen(false)} />
     </View>
   );
 }
@@ -148,6 +201,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textMuted,
   },
+  diaryCard: { marginBottom: spacing.lg },
+  diaryHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
+  diaryTitle: { fontFamily: fonts.heading, fontSize: 16, color: colors.text },
+  diaryAddBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  diaryStatRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+  diaryStatLabel: { fontFamily: fonts.bodyMedium, fontSize: 12.5, color: colors.textMuted },
+  diaryStatValue: { fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.text },
+  diaryEmpty: { fontFamily: fonts.body, fontSize: 12.5, color: colors.textFaint, marginTop: spacing.md, textAlign: 'center' },
+  diaryList: { marginTop: spacing.md, gap: 2 },
+  diaryRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 8,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border,
+  },
+  diaryRowName: { flex: 1, fontFamily: fonts.body, fontSize: 13, color: colors.text },
+  diaryRowKcal: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.textMuted },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

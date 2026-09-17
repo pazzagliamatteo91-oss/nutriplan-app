@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { UserProfile, AnalysisValue, ShoppingItem, MealPlanEntry, MealType, bi } from '../data/types';
+import { UserProfile, AnalysisValue, ShoppingItem, MealPlanEntry, MealType, DiaryEntry, bi } from '../data/types';
 import { generateMockAnalysis, noteForValue } from '../data/analysisParams';
 import { generateShoppingList, ShoppingScale } from '../data/shopping';
+import { generateMockDiary } from '../data/diary';
 import { WEEKDAYS } from '../data/constants';
 import { WorkoutLevel } from '../data/types';
 import { generateMockWorkoutLog } from '../data/workouts';
@@ -44,6 +45,7 @@ type PersistedState = {
   workoutSelection: WorkoutSelection;
   workoutLog: string[];
   mealPlan: MealPlanEntry[];
+  diaryEntries: DiaryEntry[];
   shoppingReminderId: string | null;
   language: LanguageCode;
 };
@@ -73,6 +75,10 @@ type AppContextValue = {
   setMealPlanEntry: (data: string, pasto: MealType, recipeId: string | null) => void;
   generateShoppingListFromPlan: (dates: string[], scale: PlanScale) => number;
 
+  diaryEntries: DiaryEntry[];
+  addDiaryEntry: (entry: Omit<DiaryEntry, 'id'>) => void;
+  removeDiaryEntry: (id: string) => void;
+
   language: LanguageCode;
   setLanguage: (lang: LanguageCode) => void;
   t: (key: string, vars?: Record<string, string | number>) => string;
@@ -90,6 +96,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [workoutSelection, setWorkoutSelectionState] = useState<WorkoutSelection>({ sportId: 'corsa', livello: 'Intermedio' });
   const [workoutLog, setWorkoutLog] = useState<string[]>(() => generateMockWorkoutLog());
   const [mealPlan, setMealPlan] = useState<MealPlanEntry[]>([]);
+  const [diaryEntries, setDiaryEntries] = useState<DiaryEntry[]>(() => generateMockDiary());
   const [shoppingReminderId, setShoppingReminderId] = useState<string | null>(null);
   const [language, setLanguageState] = useState<LanguageCode>(DEFAULT_LANGUAGE);
   const reminderIdRef = useRef<string | null>(null);
@@ -116,6 +123,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const legacyLastLog = (parsed as unknown as { lastWorkoutLog?: string | null }).lastWorkoutLog;
           setWorkoutLog(parsed.workoutLog ?? (legacyLastLog ? [toDateKey(new Date(legacyLastLog))] : []));
           setMealPlan(parsed.mealPlan ?? []);
+          setDiaryEntries(parsed.diaryEntries ?? generateMockDiary());
           setShoppingReminderId(parsed.shoppingReminderId ?? null);
           reminderIdRef.current = parsed.shoppingReminderId ?? null;
           setLanguageState(parsed.language ?? DEFAULT_LANGUAGE);
@@ -132,10 +140,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!loaded) return;
     const state: PersistedState = {
       profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, workoutLog,
-      mealPlan, shoppingReminderId, language,
+      mealPlan, diaryEntries, shoppingReminderId, language,
     };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
-  }, [loaded, profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, workoutLog, mealPlan, shoppingReminderId, language]);
+  }, [loaded, profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, workoutLog, mealPlan, diaryEntries, shoppingReminderId, language]);
 
   // Mantiene il promemoria spesa allineato al giorno scelto nel profilo:
   // ripianifica la notifica locale ogni volta che il giorno cambia (incluso al primo avvio).
@@ -213,6 +221,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const addDiaryEntry = useCallback((entry: Omit<DiaryEntry, 'id'>) => {
+    const id = `diary-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setDiaryEntries((prev) => [...prev, { ...entry, id }]);
+  }, []);
+
+  const removeDiaryEntry = useCallback((id: string) => {
+    setDiaryEntries((prev) => prev.filter((e) => e.id !== id));
+  }, []);
+
   const setLanguage = useCallback((lang: LanguageCode) => {
     setLanguageState(lang);
   }, []);
@@ -252,6 +269,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       mealPlan,
       setMealPlanEntry,
       generateShoppingListFromPlan,
+      diaryEntries,
+      addDiaryEntry,
+      removeDiaryEntry,
       language,
       setLanguage,
       t,
@@ -261,7 +281,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       loaded, profile, updateProfile, toggleListMember, shoppingScale, setShoppingScale, shoppingItems,
       toggleShoppingItem, resetShoppingListForScale, analysisValues, updateAnalysisValue, workoutSelection,
       setWorkoutSelection, workoutLog, lastWorkoutLog, logWorkoutToday, mealPlan, setMealPlanEntry, generateShoppingListFromPlan,
-      language, setLanguage, t, locale,
+      diaryEntries, addDiaryEntry, removeDiaryEntry, language, setLanguage, t, locale,
     ]
   );
 
