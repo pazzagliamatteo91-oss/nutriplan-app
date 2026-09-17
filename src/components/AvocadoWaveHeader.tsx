@@ -8,7 +8,11 @@ import { colors } from '../theme';
 // il nocciolo (marrone chiaro) affiora solo nell'angolo in alto a destra.
 // Il bordo inferiore non è un semplice angolo arrotondato: è un'onda che
 // resta più corta vicino al contenuto a sinistra e scende più in basso verso
-// destra, "ritagliata" nell'area colorata con il colore di sfondo della pagina.
+// destra. Il ritaglio sotto l'onda è TRASPARENTE (non del colore di sfondo):
+// l'header è un overlay sopra lo ScrollView, quindi solo i pixel colorati
+// restano fissi in cima, mentre il contenuto sottostante è visibile ovunque
+// la forma non sia colorata — il bordo dello scroll segue quindi esattamente
+// la curva verde/gialla, non un rettangolo.
 export function AvocadoWaveHeader() {
   return (
     <Svg
@@ -29,7 +33,7 @@ export function AvocadoWaveHeader() {
       />
       <Path
         d="M0 85 C 70 95, 130 120, 190 130 C 260 142, 320 160, 380 172 C 390 174, 395 175, 400 176 L 400 220 L 0 220 Z"
-        fill={colors.background}
+        fill="transparent"
       />
     </Svg>
   );
