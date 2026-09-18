@@ -12,23 +12,30 @@ import { useApp } from '../context/AppContext';
 import { RECIPES } from '../data/recipes';
 import { visibleRecipes, intoleranceWarnings } from '../data/recipeFilters';
 import { CUISINES, MEAL_TYPES } from '../data/constants';
+import { currentSeason, isSeasonalRecipe, SEASON_LABEL } from '../data/seasonal';
+import { pick } from '../i18n';
 import type { RecipesStackParamList } from '../navigation/types';
-import type { MealType } from '../data/types';
+import type { AiRecipeMode, MealType } from '../data/types';
 
 type Props = NativeStackScreenProps<RecipesStackParamList, 'RecipesList'>;
 
 export function RecipesListScreen({ navigation, route }: Props) {
   const headerHeight = useScreenHeaderHeight();
-  const { profile, t, locale } = useApp();
+  const { profile, language, t, locale } = useApp();
   const [mealType, setMealType] = useState<MealType>((route.params?.mealType as MealType) ?? 'colazione');
   const [cuisineFilter, setCuisineFilter] = useState<string[]>(route.params?.cuisineId ? [route.params.cuisineId] : []);
-  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [seasonalOnly, setSeasonalOnly] = useState(false);
+  const [aiModalMode, setAiModalMode] = useState<AiRecipeMode | null>(null);
 
-  const recipes = useMemo(
-    () => visibleRecipes(RECIPES, profile, { mealType, cuisineIds: cuisineFilter }),
-    [profile, mealType, cuisineFilter]
-  );
+  const season = useMemo(() => currentSeason(), []);
+
+  const recipes = useMemo(() => {
+    const base = visibleRecipes(RECIPES, profile, { mealType, cuisineIds: cuisineFilter });
+    return seasonalOnly ? base.filter((r) => isSeasonalRecipe(r, season)) : base;
+  }, [profile, mealType, cuisineFilter, seasonalOnly, season]);
   const cuisines = useMemo(() => CUISINES.map((o) => ({ ...o, label: locale.cuisines[o.id] ?? o.label })), [locale]);
+  const singleSelectedCuisine = cuisineFilter.length === 1 && cuisineFilter[0] !== 'varie' ? cuisineFilter[0] : null;
+  const singleSelectedCuisineLabel = singleSelectedCuisine ? cuisines.find((c) => c.id === singleSelectedCuisine)?.label ?? singleSelectedCuisine : '';
 
   const toggleCuisine = (id: string) =>
     setCuisineFilter((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
@@ -62,6 +69,15 @@ export function RecipesListScreen({ navigation, route }: Props) {
               <View style={styles.quickChips}>
                 <Chip label={t('common.all')} selected={cuisineFilter.length === 0} onPress={() => setCuisineFilter([])} />
                 <Chip label={t('recipes.misc')} selected={cuisineFilter.includes('varie')} onPress={() => toggleCuisine('varie')} />
+                <Chip
+                  label={`${t('recipes.seasonalChipLabel')} · ${pick(SEASON_LABEL[season], language)}`}
+                  selected={seasonalOnly}
+                  onPress={() => setSeasonalOnly((v) => !v)}
+                />
+                <Pressable style={styles.trendChip} onPress={() => setAiModalMode('trend')}>
+                  <Icon name="sparkle" size={13} color={colors.highlight} />
+                  <Text style={styles.trendChipLabel}>{t('recipes.aiTrendCtaTitle')}</Text>
+                </Pressable>
               </View>
               <OptionGroup
                 options={cuisines}
@@ -71,9 +87,15 @@ export function RecipesListScreen({ navigation, route }: Props) {
                 otherLabel={t('common.other')}
                 lessLabel={t('common.less')}
               />
+              {singleSelectedCuisine && (
+                <Pressable style={styles.ethnicCta} onPress={() => setAiModalMode('etnica')}>
+                  <Icon name="sparkle" size={15} color={colors.highlight} />
+                  <Text style={styles.ethnicCtaLabel}>{t('recipes.aiEthnicCtaTitle', { cucina: singleSelectedCuisineLabel })}</Text>
+                </Pressable>
+              )}
             </View>
 
-            <Pressable style={styles.aiCtaCard} onPress={() => setAiModalOpen(true)}>
+            <Pressable style={styles.aiCtaCard} onPress={() => setAiModalMode('custom')}>
               <View style={styles.aiCtaIconWrap}>
                 <Icon name="sparkle" size={20} color={colors.highlight} />
               </View>
@@ -109,7 +131,13 @@ export function RecipesListScreen({ navigation, route }: Props) {
         }
       />
 
-      <AiRecipeModal visible={aiModalOpen} onClose={() => setAiModalOpen(false)} initialMealType={mealType} />
+      <AiRecipeModal
+        visible={aiModalMode !== null}
+        onClose={() => setAiModalMode(null)}
+        mode={aiModalMode ?? 'custom'}
+        initialMealType={mealType}
+        lockedCucina={aiModalMode === 'etnica' ? singleSelectedCuisine ?? undefined : undefined}
+      />
     </View>
   );
 }
@@ -141,7 +169,19 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
   filterSection: { marginBottom: spacing.md },
   filterLabel: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.textMuted, marginBottom: spacing.sm, textTransform: 'uppercase' },
-  quickChips: { flexDirection: 'row', marginBottom: spacing.xs },
+  quickChips: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: spacing.xs },
+  trendChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingVertical: 8, paddingHorizontal: 14, borderRadius: radii.pill,
+    backgroundColor: colors.panelAlt, marginRight: spacing.sm, marginBottom: spacing.sm,
+    borderWidth: 1, borderColor: colors.accent,
+  },
+  trendChipLabel: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.text },
+  ethnicCta: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingVertical: 8, marginTop: spacing.xs,
+  },
+  ethnicCtaLabel: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.highlight },
   aiCtaCard: {
     flexDirection: 'row',
     alignItems: 'center',

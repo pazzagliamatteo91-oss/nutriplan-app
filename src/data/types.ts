@@ -309,12 +309,20 @@ export type WellnessEcosistema = {
 
 // --- Motore IA: generazione di una singola ricetta su misura ---
 
+// trend = versione fit di un piatto virale/di tendenza del momento
+// etnica = nuovo piatto fedele a una specifica cucina del mondo
+// custom = ricetta libera (facoltativamente con cucina/ingredienti a scelta)
+export type AiRecipeMode = 'trend' | 'etnica' | 'custom';
+
 export type AiRecipeRequestParams = {
+  modalita: AiRecipeMode;
   tipoPasto: MealType;
-  cucina: string; // '' = nessuna preferenza, lascia scegliere all'IA
+  cucina: string; // '' = nessuna preferenza, lascia scegliere all'IA (usato per 'etnica')
   tempoMassimoMin: number;
   kcalTarget: number | null; // null = nessun vincolo
+  proteineTarget: number | null; // null = nessun vincolo
   note: string;
+  stagione: string; // etichetta stagione corrente, per orientare gli ingredienti quando sensato
   lingua: 'it' | 'en';
   intolleranzeAllergie: string[];
 };
@@ -325,12 +333,14 @@ export type AiRecipeResult = {
   nome: string;
   cucina: string;
   tagDietetico: string;
+  difficolta: string;
   tempoMinuti: number;
   kcal: number;
   proteineG: number;
   compatibileIntolleranze: boolean;
   ingredienti: AiRecipeIngrediente[];
   passaggi: string[];
+  tipDelloChef: string;
 };
 
 // --- Motore IA: lettura ragionata delle analisi ematiche ---

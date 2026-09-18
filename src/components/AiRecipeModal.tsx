@@ -1,19 +1,23 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { colors, fonts, radii, spacing } from '../theme';
 import { Card } from './Card';
 import { Chip } from './Chip';
 import { Icon } from './Icon';
 import { useApp } from '../context/AppContext';
-import { AiRecipeResult, MealType, bi } from '../data/types';
+import { AiRecipeMode, AiRecipeResult, MealType, bi } from '../data/types';
 import { generateAiRecipe, AiWorkoutError, AiWorkoutErrorCode, hasAiApiKeyConfigured } from '../data/aiRecipeClient';
 import { toDateKey } from '../data/mealPlan';
 import { MEAL_TYPES, CUISINES } from '../data/constants';
+import { currentSeason, SEASON_LABEL } from '../data/seasonal';
+import { pick } from '../i18n';
 
 type Props = {
   visible: boolean;
   onClose: () => void;
+  mode: AiRecipeMode;
   initialMealType: MealType;
+  lockedCucina?: string;
 };
 
 const ERROR_KEYS: Record<AiWorkoutErrorCode, string> = {
@@ -35,13 +39,14 @@ function parseNum(s: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-export function AiRecipeModal({ visible, onClose, initialMealType }: Props) {
+export function AiRecipeModal({ visible, onClose, mode, initialMealType, lockedCucina }: Props) {
   const { profile, language, t, locale, addDiaryEntry } = useApp();
 
   const [tipoPasto, setTipoPasto] = useState<MealType>(initialMealType);
-  const [cucina, setCucina] = useState('');
+  const [cucina, setCucina] = useState(lockedCucina ?? '');
   const [tempoMassimo, setTempoMassimo] = useState('30');
   const [kcalTarget, setKcalTarget] = useState('');
+  const [proteineTarget, setProteineTarget] = useState('');
   const [note, setNote] = useState('');
 
   const [loading, setLoading] = useState(false);
@@ -51,6 +56,19 @@ export function AiRecipeModal({ visible, onClose, initialMealType }: Props) {
 
   const apiKeyConfigured = hasAiApiKeyConfigured();
   const cuisines = CUISINES.map((o) => ({ ...o, label: locale.cuisines[o.id] ?? o.label }));
+  const lockedCucinaLabel = lockedCucina ? cuisines.find((c) => c.id === lockedCucina)?.label ?? lockedCucina : '';
+  const season = useMemo(() => currentSeason(), []);
+  const stagioneLabel = pick(SEASON_LABEL[season], language);
+
+  const modalTitle =
+    mode === 'trend'
+      ? t('recipes.aiTrendModalTitle')
+      : mode === 'etnica'
+      ? t('recipes.aiEthnicModalTitle', { cucina: lockedCucinaLabel })
+      : t('recipes.aiModalTitle');
+  const noteLabel = mode === 'trend' ? t('recipes.aiTrendNoteLabel') : mode === 'etnica' ? t('recipes.aiEthnicNoteLabel') : t('recipes.aiNotes');
+  const notePlaceholder =
+    mode === 'trend' ? t('recipes.aiTrendNotePlaceholder') : mode === 'etnica' ? t('recipes.aiEthnicNotePlaceholder') : t('recipes.aiNotesPlaceholder');
 
   const resetToForm = () => {
     setResult(null);
@@ -68,11 +86,14 @@ export function AiRecipeModal({ visible, onClose, initialMealType }: Props) {
     setErrorCode(null);
     try {
       const recipe = await generateAiRecipe({
+        modalita: mode,
         tipoPasto,
         cucina,
         tempoMassimoMin: parseNum(tempoMassimo) ?? 30,
         kcalTarget: parseNum(kcalTarget),
+        proteineTarget: parseNum(proteineTarget),
         note,
+        stagione: stagioneLabel,
         lingua: language,
         intolleranzeAllergie: [...profile.intolleranze, ...profile.allergie],
       });
@@ -106,14 +127,14 @@ export function AiRecipeModal({ visible, onClose, initialMealType }: Props) {
           <View style={styles.sheetHeader}>
             <View style={styles.sheetHeaderTitleRow}>
               <Icon name="sparkle" size={18} color={colors.highlight} />
-              <Text style={styles.sheetTitle}>{t('recipes.aiModalTitle')}</Text>
+              <Text style={styles.sheetTitle}>{modalTitle}</Text>
             </View>
             <Pressable onPress={handleClose} hitSlop={10}>
               <Icon name="close" size={20} color={colors.textMuted} />
             </Pressable>
           </View>
 
-          <ScrollView style={{ maxHeight: 540 }} showsVerticalScrollIndicator={false}>
+          <ScrollView style={{ maxHeight: 560 }} showsVerticalScrollIndicator={false}>
             {result ? (
               <View style={styles.resultWrap}>
                 <Text style={styles.resultName}>{result.nome}</Text>
@@ -126,6 +147,11 @@ export function AiRecipeModal({ visible, onClose, initialMealType }: Props) {
                   {!!result.tagDietetico && (
                     <View style={[styles.badge, styles.badgeAlt]}>
                       <Text style={[styles.badgeLabel, styles.badgeLabelAlt]}>{result.tagDietetico}</Text>
+                    </View>
+                  )}
+                  {!!result.difficolta && (
+                    <View style={[styles.badge, styles.badgeAlt]}>
+                      <Text style={[styles.badgeLabel, styles.badgeLabelAlt]}>{t('recipes.aiResultDifficulty', { level: result.difficolta })}</Text>
                     </View>
                   )}
                 </View>
@@ -164,6 +190,15 @@ export function AiRecipeModal({ visible, onClose, initialMealType }: Props) {
                   ))}
                 </Card>
 
+                {!!result.tipDelloChef && (
+                  <>
+                    <Text style={styles.sectionTitle}>{t('recipes.aiResultTip')}</Text>
+                    <Card variant="panelAlt" style={styles.card}>
+                      <Text style={styles.cardMuted}>{result.tipDelloChef}</Text>
+                    </Card>
+                  </>
+                )}
+
                 <Pressable style={styles.secondaryBtn} onPress={handleAddToDiary} disabled={addedToDiary}>
                   <Text style={styles.secondaryBtnLabel}>
                     {addedToDiary ? t('recipes.aiResultAddedToDiary') : t('recipes.aiResultAddToDiary')}
@@ -197,13 +232,26 @@ export function AiRecipeModal({ visible, onClose, initialMealType }: Props) {
                   ))}
                 </View>
 
-                <Text style={styles.formLabel}>{t('recipes.aiCuisine')}</Text>
-                <View style={styles.chipsRow}>
-                  <Chip label={t('common.all')} selected={cucina === ''} onPress={() => setCucina('')} />
-                  {cuisines.map((c) => (
-                    <Chip key={c.id} label={c.label} selected={cucina === c.id} onPress={() => setCucina(c.id)} />
-                  ))}
-                </View>
+                {mode === 'etnica' && (
+                  <>
+                    <Text style={styles.formLabel}>{t('recipes.aiCuisineLocked')}</Text>
+                    <View style={styles.lockedCucinaRow}>
+                      <Text style={styles.lockedCucinaLabel}>{lockedCucinaLabel}</Text>
+                    </View>
+                  </>
+                )}
+
+                {mode === 'custom' && (
+                  <>
+                    <Text style={styles.formLabel}>{t('recipes.aiCuisine')}</Text>
+                    <View style={styles.chipsRow}>
+                      <Chip label={t('common.all')} selected={cucina === ''} onPress={() => setCucina('')} />
+                      {cuisines.map((c) => (
+                        <Chip key={c.id} label={c.label} selected={cucina === c.id} onPress={() => setCucina(c.id)} />
+                      ))}
+                    </View>
+                  </>
+                )}
 
                 <Text style={styles.formLabel}>{t('recipes.aiMaxTime')}</Text>
                 <TextInput
@@ -224,12 +272,22 @@ export function AiRecipeModal({ visible, onClose, initialMealType }: Props) {
                   placeholderTextColor={colors.textFaint}
                 />
 
-                <Text style={styles.formLabel}>{t('recipes.aiNotes')}</Text>
+                <Text style={styles.formLabel}>{t('recipes.aiProteinTarget')}</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={proteineTarget}
+                  onChangeText={setProteineTarget}
+                  keyboardType="numeric"
+                  placeholder="—"
+                  placeholderTextColor={colors.textFaint}
+                />
+
+                <Text style={styles.formLabel}>{noteLabel}</Text>
                 <TextInput
                   style={styles.textInput}
                   value={note}
                   onChangeText={setNote}
-                  placeholder={t('recipes.aiNotesPlaceholder')}
+                  placeholder={notePlaceholder}
                   placeholderTextColor={colors.textFaint}
                 />
 
@@ -269,11 +327,21 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.overlay },
   sheet: { backgroundColor: colors.panel, borderTopLeftRadius: radii.xl, borderTopRightRadius: radii.xl, padding: spacing.lg, paddingBottom: spacing.xl },
   sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
-  sheetHeaderTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sheetTitle: { fontFamily: fonts.heading, fontSize: 17, color: colors.text },
+  sheetHeaderTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
+  sheetTitle: { fontFamily: fonts.heading, fontSize: 17, color: colors.text, flexShrink: 1 },
   formWrap: { paddingBottom: spacing.md },
   formLabel: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.textMuted, textTransform: 'uppercase', marginTop: spacing.md, marginBottom: spacing.sm },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap' },
+  lockedCucinaRow: { flexDirection: 'row', alignItems: 'center' },
+  lockedCucinaLabel: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.accentText,
+    backgroundColor: colors.accent,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: radii.pill,
+  },
   textInput: {
     backgroundColor: colors.panelAlt,
     borderRadius: radii.sm,
@@ -298,7 +366,7 @@ const styles = StyleSheet.create({
   generateBtnLabel: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: colors.accentText },
   resultWrap: { paddingBottom: spacing.md },
   resultName: { fontFamily: fonts.headingBold, fontSize: 19, color: colors.text, marginBottom: spacing.sm },
-  badgeRow: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.sm },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.sm },
   badge: { backgroundColor: colors.accent, borderRadius: radii.pill, paddingVertical: 4, paddingHorizontal: 10 },
   badgeAlt: { backgroundColor: colors.panelAlt },
   badgeLabel: { fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.accentText },
@@ -307,6 +375,7 @@ const styles = StyleSheet.create({
   metaText: { fontFamily: fonts.body, fontSize: 12.5, color: colors.textMuted, marginRight: spacing.sm },
   sectionTitle: { fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.3, marginTop: spacing.md, marginBottom: spacing.sm },
   card: { gap: 2 },
+  cardMuted: { fontFamily: fonts.body, fontSize: 13, color: colors.textMuted, lineHeight: 18 },
   ingredientRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 },
   ingredientName: { fontFamily: fonts.body, fontSize: 13.5, color: colors.text },
   ingredientQty: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.highlight },

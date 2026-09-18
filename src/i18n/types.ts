@@ -84,6 +84,7 @@ export type Locale = {
     aiModalTitle: string;
     aiMealType: string;
     aiCuisine: string;
+    aiCuisineLocked: string;
     aiMaxTime: string;
     aiKcalTarget: string;
     aiNotes: string;
@@ -98,6 +99,19 @@ export type Locale = {
     aiResultAddedToDiary: string;
     aiResultNewRecipe: string;
     aiResultClose: string;
+    aiProteinTarget: string;
+    aiResultDifficulty: string; // {level}
+    aiResultTip: string;
+    aiTrendCtaTitle: string;
+    aiTrendCtaSubtitle: string;
+    aiTrendModalTitle: string;
+    aiTrendNoteLabel: string;
+    aiTrendNotePlaceholder: string;
+    aiEthnicCtaTitle: string; // {cucina}
+    aiEthnicModalTitle: string; // {cucina}
+    aiEthnicNoteLabel: string;
+    aiEthnicNotePlaceholder: string;
+    seasonalChipLabel: string;
   };
   shopping: {
     title: string;
