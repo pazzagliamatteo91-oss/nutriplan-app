@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { colors, fonts, radii, spacing } from '../theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, fonts, radii, spacing, shadow } from '../theme';
 import { Avatar } from '../components/Avatar';
 import { Card } from '../components/Card';
 import { Icon, IconName } from '../components/Icon';
@@ -120,14 +121,20 @@ export function HomeScreen() {
         </Card>
 
         <Pressable style={styles.wellnessCta} onPress={() => setWellnessModalOpen(true)}>
+          <LinearGradient
+            colors={[colors.highlight, '#26381F']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
           <View style={styles.wellnessCtaIcon}>
-            <Icon name="sparkle" size={20} color={colors.highlight} />
+            <Icon name="sparkle" size={20} color={colors.white} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.wellnessCtaTitle}>{t('wellness.ctaTitle')}</Text>
             <Text style={styles.wellnessCtaSubtitle}>{t('wellness.ctaSubtitle')}</Text>
           </View>
-          <Icon name="chevronRight" size={18} color={colors.textFaint} />
+          <Icon name="chevronRight" size={18} color="rgba(255,255,255,0.8)" />
         </Pressable>
 
         <View style={styles.grid}>
@@ -203,6 +210,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     marginBottom: spacing.lg,
+    ...shadow.sm,
   },
   notificationIcon: {
     width: 40,
@@ -223,7 +231,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textMuted,
   },
-  diaryCard: { marginBottom: spacing.lg },
+  diaryCard: { marginBottom: spacing.lg, ...shadow.sm },
   diaryHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
   diaryTitle: { fontFamily: fonts.heading, fontSize: 16, color: colors.text },
   diaryAddBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
@@ -242,20 +250,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: colors.panel,
     borderRadius: radii.lg,
     padding: spacing.md,
     marginBottom: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.accent,
+    overflow: 'hidden',
+    ...shadow.md,
   },
   wellnessCtaIcon: {
     width: 40, height: 40, borderRadius: radii.sm,
-    backgroundColor: colors.panelAlt,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center', justifyContent: 'center',
   },
-  wellnessCtaTitle: { fontFamily: fonts.bodySemiBold, fontSize: 14.5, color: colors.text },
-  wellnessCtaSubtitle: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 1 },
+  wellnessCtaTitle: { fontFamily: fonts.bodySemiBold, fontSize: 14.5, color: colors.white },
+  wellnessCtaSubtitle: { fontFamily: fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 1 },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -265,6 +272,7 @@ const styles = StyleSheet.create({
     width: '48%',
     marginBottom: spacing.md,
     minHeight: 120,
+    ...shadow.sm,
   },
   tileIcon: {
     marginBottom: spacing.sm,
