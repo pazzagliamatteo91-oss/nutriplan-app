@@ -21,7 +21,7 @@ import { toDateKey } from '../data/mealPlan';
 import { INTL_LOCALE, pick } from '../i18n';
 import type { RootTabParamList } from '../navigation/types';
 
-const HEADER_HEIGHT = 132;
+const HEADER_HEIGHT = 190;
 
 function formatToday(locale: string) {
   const label = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());

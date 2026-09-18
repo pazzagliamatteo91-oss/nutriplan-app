@@ -9,7 +9,7 @@ type Props = {
   right?: React.ReactNode;
 };
 
-const HEADER_HEIGHT = 132;
+const HEADER_HEIGHT = 190;
 
 // Altezza totale dell'header (safe-area inclusa): usata dagli schermi per dare
 // alla loro ScrollView/FlatList un paddingTop che parte subito sotto il titolo,
