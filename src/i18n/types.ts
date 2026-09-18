@@ -79,6 +79,25 @@ export type Locale = {
     pickForMeal: string; // {meal}
     noRecipesForMeal: string;
     exportSelectListTitle: string;
+    aiCtaTitle: string;
+    aiCtaSubtitle: string;
+    aiModalTitle: string;
+    aiMealType: string;
+    aiCuisine: string;
+    aiMaxTime: string;
+    aiKcalTarget: string;
+    aiNotes: string;
+    aiNotesPlaceholder: string;
+    aiGenerateButton: string;
+    aiGenerating: string;
+    aiResultTime: string; // {min}
+    aiResultKcal: string; // {kcal} {p}
+    aiResultIngredients: string;
+    aiResultSteps: string;
+    aiResultAddToDiary: string;
+    aiResultAddedToDiary: string;
+    aiResultNewRecipe: string;
+    aiResultClose: string;
   };
   shopping: {
     title: string;
@@ -109,6 +128,16 @@ export type Locale = {
     range: string; // {min}-{max}
     processedTitle: string;
     processedBody: string;
+    aiCtaTitle: string;
+    aiCtaSubtitle: string;
+    aiModalTitle: string;
+    aiNotesLabel: string;
+    aiNotesPlaceholder: string;
+    aiGenerateButton: string;
+    aiGenerating: string;
+    aiNoAnomalies: string;
+    aiResultClose: string;
+    aiResultNewAnalysis: string;
   };
   workout: {
     title: string;

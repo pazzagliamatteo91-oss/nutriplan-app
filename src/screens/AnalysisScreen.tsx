@@ -6,6 +6,7 @@ import { ScreenHeader, useScreenHeaderHeight } from '../components/ScreenHeader'
 import { Card } from '../components/Card';
 import { Icon } from '../components/Icon';
 import { Button } from '../components/Button';
+import { AiAnalysisModal } from '../components/AiAnalysisModal';
 import { useApp } from '../context/AppContext';
 import { generateMockAnalysis } from '../data/analysisParams';
 import { AnalysisValue, AnalysisStatus } from '../data/types';
@@ -32,6 +33,7 @@ export function AnalysisScreen() {
   const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState<AnalysisValue | null>(null);
   const [draft, setDraft] = useState('');
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   const STATUS_LABEL: Record<AnalysisStatus, string> = {
     basso: t('analysis.statusLow'),
@@ -81,6 +83,17 @@ export function AnalysisScreen() {
             <Text style={styles.uploadSubtitle}>{t('analysis.uploadSubtitle')}</Text>
           </View>
         </Card>
+
+        <Pressable style={styles.aiCtaCard} onPress={() => setAiModalOpen(true)}>
+          <View style={styles.aiCtaIconWrap}>
+            <Icon name="sparkle" size={20} color={colors.highlight} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.aiCtaTitle}>{t('analysis.aiCtaTitle')}</Text>
+            <Text style={styles.aiCtaSubtitle}>{t('analysis.aiCtaSubtitle')}</Text>
+          </View>
+          <Icon name="chevronRight" size={18} color={colors.textFaint} />
+        </Pressable>
 
         <Text style={styles.sectionLabel}>{t('analysis.paramsSectionTitle')}</Text>
         {analysisValues.map((item) => (
@@ -155,6 +168,8 @@ export function AnalysisScreen() {
           </View>
         </View>
       </Modal>
+
+      <AiAnalysisModal visible={aiModalOpen} onClose={() => setAiModalOpen(false)} />
     </View>
   );
 }
@@ -166,6 +181,24 @@ const styles = StyleSheet.create({
   uploadIcon: { width: 40, height: 40, borderRadius: radii.md, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   uploadTitle: { fontFamily: fonts.bodySemiBold, fontSize: 15, color: colors.text },
   uploadSubtitle: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  aiCtaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.panel,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  aiCtaIconWrap: {
+    width: 40, height: 40, borderRadius: radii.sm,
+    backgroundColor: colors.panelAlt,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  aiCtaTitle: { fontFamily: fonts.bodySemiBold, fontSize: 14.5, color: colors.text },
+  aiCtaSubtitle: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 1 },
   sectionLabel: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.textMuted, textTransform: 'uppercase', marginBottom: spacing.sm },
   paramCard: { marginBottom: spacing.sm },
   paramTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },

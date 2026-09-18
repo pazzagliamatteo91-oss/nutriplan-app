@@ -7,6 +7,7 @@ import { Chip } from '../components/Chip';
 import { OptionGroup } from '../components/OptionGroup';
 import { RecipeCard } from '../components/RecipeCard';
 import { Icon } from '../components/Icon';
+import { AiRecipeModal } from '../components/AiRecipeModal';
 import { useApp } from '../context/AppContext';
 import { RECIPES } from '../data/recipes';
 import { visibleRecipes, intoleranceWarnings } from '../data/recipeFilters';
@@ -21,6 +22,7 @@ export function RecipesListScreen({ navigation, route }: Props) {
   const { profile, t, locale } = useApp();
   const [mealType, setMealType] = useState<MealType>((route.params?.mealType as MealType) ?? 'colazione');
   const [cuisineFilter, setCuisineFilter] = useState<string[]>(route.params?.cuisineId ? [route.params.cuisineId] : []);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   const recipes = useMemo(
     () => visibleRecipes(RECIPES, profile, { mealType, cuisineIds: cuisineFilter }),
@@ -70,6 +72,17 @@ export function RecipesListScreen({ navigation, route }: Props) {
                 lessLabel={t('common.less')}
               />
             </View>
+
+            <Pressable style={styles.aiCtaCard} onPress={() => setAiModalOpen(true)}>
+              <View style={styles.aiCtaIconWrap}>
+                <Icon name="sparkle" size={20} color={colors.highlight} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.aiCtaTitle}>{t('recipes.aiCtaTitle')}</Text>
+                <Text style={styles.aiCtaSubtitle}>{t('recipes.aiCtaSubtitle')}</Text>
+              </View>
+              <Icon name="chevronRight" size={18} color={colors.textFaint} />
+            </Pressable>
           </View>
         }
         renderItem={({ item }) => (
@@ -95,6 +108,8 @@ export function RecipesListScreen({ navigation, route }: Props) {
           </Pressable>
         }
       />
+
+      <AiRecipeModal visible={aiModalOpen} onClose={() => setAiModalOpen(false)} initialMealType={mealType} />
     </View>
   );
 }
@@ -127,6 +142,24 @@ const styles = StyleSheet.create({
   filterSection: { marginBottom: spacing.md },
   filterLabel: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.textMuted, marginBottom: spacing.sm, textTransform: 'uppercase' },
   quickChips: { flexDirection: 'row', marginBottom: spacing.xs },
+  aiCtaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.panel,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  aiCtaIconWrap: {
+    width: 40, height: 40, borderRadius: radii.sm,
+    backgroundColor: colors.panelAlt,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  aiCtaTitle: { fontFamily: fonts.bodySemiBold, fontSize: 14.5, color: colors.text },
+  aiCtaSubtitle: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 1 },
   empty: { paddingVertical: spacing.xxl, alignItems: 'center' },
   emptyText: { fontFamily: fonts.body, fontSize: 14, color: colors.textMuted, textAlign: 'center' },
 });

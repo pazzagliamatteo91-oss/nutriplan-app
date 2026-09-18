@@ -307,6 +307,52 @@ export type WellnessEcosistema = {
   analisiEmaticheReport: WellnessAnalisiEmaticheReport;
 };
 
+// --- Motore IA: generazione di una singola ricetta su misura ---
+
+export type AiRecipeRequestParams = {
+  tipoPasto: MealType;
+  cucina: string; // '' = nessuna preferenza, lascia scegliere all'IA
+  tempoMassimoMin: number;
+  kcalTarget: number | null; // null = nessun vincolo
+  note: string;
+  lingua: 'it' | 'en';
+  intolleranzeAllergie: string[];
+};
+
+export type AiRecipeIngrediente = { nome: string; quantita: string };
+
+export type AiRecipeResult = {
+  nome: string;
+  cucina: string;
+  tagDietetico: string;
+  tempoMinuti: number;
+  kcal: number;
+  proteineG: number;
+  compatibileIntolleranze: boolean;
+  ingredienti: AiRecipeIngrediente[];
+  passaggi: string[];
+};
+
+// --- Motore IA: lettura ragionata delle analisi ematiche ---
+
+export type AiAnalysisRequestParams = {
+  note: string;
+  lingua: 'it' | 'en';
+};
+
+export type AiAnalysisAnomalia = {
+  parametro: string;
+  valoreRilevato: string;
+  spuntoDaDiscuterreColMedico: string;
+};
+
+export type AiAnalysisReport = {
+  disclaimer: string;
+  statoGenerale: string;
+  suggerimentoGenerale: string;
+  anomalieRilevate: AiAnalysisAnomalia[];
+};
+
 export type ShoppingItem = {
   id: string;
   nome: Bilingual;
