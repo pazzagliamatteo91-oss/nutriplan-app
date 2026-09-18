@@ -6,6 +6,7 @@ import { colors, fonts, radii, spacing, shadow } from '../theme';
 import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
 import { Icon, IconName } from '../components/Icon';
+import { ColorIcon } from '../components/ColorIcon';
 import { Button } from '../components/Button';
 import { useApp } from '../context/AppContext';
 import { MAIN_SPORTS, EXTENDED_SPORTS, DEVICE_TYPES, WEEKDAYS } from '../data/constants';
@@ -22,7 +23,11 @@ import { useHealthWorkoutSync } from '../hooks/useHealthWorkoutSync';
 
 type SessionKind = 'specifico' | 'supporto';
 
-const HEADER_HEIGHT = 52;
+const HEADER_HEIGHT = 110;
+const AVOCADO_SIZE = 150;
+// Variante "fuoco" dell'icona avocado, solo per questo header: nocciolo nero,
+// polpa arancione, buccia rossa, in linea con l'accento acceso della sezione.
+const AVOCADO_FIRE_PALETTE = { skin: colors.berry, flesh: '#E2791E', pit: '#1A1A1A' };
 
 export function WorkoutScreen() {
   const insets = useSafeAreaInsets();
@@ -360,7 +365,10 @@ export function WorkoutScreen() {
       </ScrollView>
 
       <View style={[styles.header, { height: headerHeight }]}>
-        <View style={[styles.headerRow, { marginTop: insets.top }]}>
+        <View style={styles.avocadoBadge} pointerEvents="none">
+          <ColorIcon name="avocado" size={AVOCADO_SIZE} avocadoPalette={AVOCADO_FIRE_PALETTE} />
+        </View>
+        <View style={[styles.headerRow, { marginTop: insets.top + spacing.md }]}>
           <Text style={styles.headerTitle}>{t('workout.title')}</Text>
         </View>
       </View>
@@ -428,12 +436,17 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: colors.background,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    overflow: 'hidden',
     zIndex: 10,
   },
-  headerRow: { paddingHorizontal: spacing.lg, justifyContent: 'center', flex: 1 },
-  headerTitle: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.text },
+  avocadoBadge: {
+    position: 'absolute',
+    top: -36,
+    right: -36,
+    opacity: 0.22,
+  },
+  headerRow: { paddingHorizontal: spacing.lg },
+  headerTitle: { fontFamily: fonts.headingBold, fontSize: 24, color: colors.text },
   label: { fontFamily: fonts.bodySemiBold, fontSize: 12, color: colors.textMuted, textTransform: 'uppercase', marginBottom: spacing.sm },
   consistencyCard: { marginBottom: spacing.lg },
   consistencyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },

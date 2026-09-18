@@ -17,24 +17,31 @@ const THEMES: Record<Exclude<ColorIconName, 'avocado'>, { bg: string; fg: string
 
 const AVOCADO = { skin: '#3F5233', flesh: '#C4D583', pit: '#8B5A3C' };
 
+export type AvocadoPalette = { skin: string; flesh: string; pit: string };
+
 type Props = {
   name: ColorIconName;
   size?: number;
   focused?: boolean;
+  // Permette di ricolorare il glifo avocado (stessa geometria) per sezioni con
+  // un'identità cromatica diversa, es. la variante "fuoco" di Allenamento,
+  // senza toccare i colori di default usati da tab bar e altri header.
+  avocadoPalette?: AvocadoPalette;
 };
 
-export function ColorIcon({ name, size = 24, focused = true }: Props) {
-  const content = renderGlyph(name, size);
+export function ColorIcon({ name, size = 24, focused = true, avocadoPalette }: Props) {
+  const content = renderGlyph(name, size, avocadoPalette);
   return <View style={{ opacity: focused ? 1 : 0.45 }}>{content}</View>;
 }
 
-function renderGlyph(name: ColorIconName, size: number) {
+function renderGlyph(name: ColorIconName, size: number, avocadoPalette?: AvocadoPalette) {
   if (name === 'avocado') {
+    const p = avocadoPalette ?? AVOCADO;
     return (
       <Svg width={size} height={size} viewBox="0 0 24 24">
-        <Path d="M12 2c-4.5 0-7.5 4.6-7.5 10.2 0 5.1 3.3 9.3 7.5 9.3s7.5-4.2 7.5-9.3C19.5 6.6 16.5 2 12 2Z" fill={AVOCADO.skin} />
-        <Path d="M12 4.3c-3.2 0-5.4 3.9-5.4 8.4 0 3.9 2.2 6.9 5.4 6.9s5.4-3 5.4-6.9c0-4.5-2.2-8.4-5.4-8.4Z" fill={AVOCADO.flesh} />
-        <Circle cx="12" cy="13.6" r="3.3" fill={AVOCADO.pit} />
+        <Path d="M12 2c-4.5 0-7.5 4.6-7.5 10.2 0 5.1 3.3 9.3 7.5 9.3s7.5-4.2 7.5-9.3C19.5 6.6 16.5 2 12 2Z" fill={p.skin} />
+        <Path d="M12 4.3c-3.2 0-5.4 3.9-5.4 8.4 0 3.9 2.2 6.9 5.4 6.9s5.4-3 5.4-6.9c0-4.5-2.2-8.4-5.4-8.4Z" fill={p.flesh} />
+        <Circle cx="12" cy="13.6" r="3.3" fill={p.pit} />
         <Path d="M10.6 12.3a2.2 2 0 0 1 2.6-0.4" stroke="#F3E6D4" strokeWidth={0.8} strokeLinecap="round" fill="none" opacity={0.6} />
       </Svg>
     );
