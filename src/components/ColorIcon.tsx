@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import Svg, { Circle, Path, Line, Rect } from 'react-native-svg';
+import Svg, { Circle, Path, Line, Rect, Text as SvgText } from 'react-native-svg';
 
 export type ColorIconName = 'home' | 'recipes' | 'shopping' | 'analysis' | 'workout' | 'avocado';
 
@@ -27,22 +27,42 @@ type Props = {
   // un'identità cromatica diversa, es. la variante "fuoco" di Allenamento,
   // senza toccare i colori di default usati da tab bar e altri header.
   avocadoPalette?: AvocadoPalette;
+  // 'plate': il nocciolo diventa un mini disco da bilanciere (ghiera, foro
+  // centrale, croce e sigle), per la sezione Allenamento. Resta nero (o nel
+  // colore di avocadoPalette.pit): cambia solo la forma, non la palette.
+  avocadoPitStyle?: 'default' | 'plate';
 };
 
-export function ColorIcon({ name, size = 24, focused = true, avocadoPalette }: Props) {
-  const content = renderGlyph(name, size, avocadoPalette);
+export function ColorIcon({ name, size = 24, focused = true, avocadoPalette, avocadoPitStyle }: Props) {
+  const content = renderGlyph(name, size, avocadoPalette, avocadoPitStyle);
   return <View style={{ opacity: focused ? 1 : 0.45 }}>{content}</View>;
 }
 
-function renderGlyph(name: ColorIconName, size: number, avocadoPalette?: AvocadoPalette) {
+function renderGlyph(name: ColorIconName, size: number, avocadoPalette?: AvocadoPalette, pitStyle: 'default' | 'plate' = 'default') {
   if (name === 'avocado') {
     const p = avocadoPalette ?? AVOCADO;
     return (
       <Svg width={size} height={size} viewBox="0 0 24 24">
         <Path d="M12 2c-4.5 0-7.5 4.6-7.5 10.2 0 5.1 3.3 9.3 7.5 9.3s7.5-4.2 7.5-9.3C19.5 6.6 16.5 2 12 2Z" fill={p.skin} />
         <Path d="M12 4.3c-3.2 0-5.4 3.9-5.4 8.4 0 3.9 2.2 6.9 5.4 6.9s5.4-3 5.4-6.9c0-4.5-2.2-8.4-5.4-8.4Z" fill={p.flesh} />
-        <Circle cx="12" cy="13.6" r="3.3" fill={p.pit} />
-        <Path d="M10.6 12.3a2.2 2 0 0 1 2.6-0.4" stroke="#F3E6D4" strokeWidth={0.8} strokeLinecap="round" fill="none" opacity={0.6} />
+        {pitStyle === 'plate' ? (
+          <>
+            <Circle cx="12" cy="13.6" r="3.8" fill={p.pit} />
+            <Circle cx="12" cy="13.6" r="3.15" stroke={p.flesh} strokeWidth={0.28} fill="none" opacity={0.85} />
+            <Line x1="13.13" y1="14.73" x2="13.91" y2="15.51" stroke={p.flesh} strokeWidth={0.3} strokeLinecap="round" opacity={0.85} />
+            <Line x1="10.87" y1="14.73" x2="10.09" y2="15.51" stroke={p.flesh} strokeWidth={0.3} strokeLinecap="round" opacity={0.85} />
+            <Line x1="10.87" y1="12.47" x2="10.09" y2="11.69" stroke={p.flesh} strokeWidth={0.3} strokeLinecap="round" opacity={0.85} />
+            <Line x1="13.13" y1="12.47" x2="13.91" y2="11.69" stroke={p.flesh} strokeWidth={0.3} strokeLinecap="round" opacity={0.85} />
+            <Circle cx="12" cy="13.6" r="1.35" fill={p.flesh} />
+            <SvgText x="12" y="11.55" fontSize="1.55" fontWeight="bold" fill={p.flesh} textAnchor="middle">45</SvgText>
+            <SvgText x="12" y="16.75" fontSize="1.35" fontWeight="bold" fill={p.flesh} textAnchor="middle">KG</SvgText>
+          </>
+        ) : (
+          <>
+            <Circle cx="12" cy="13.6" r="3.3" fill={p.pit} />
+            <Path d="M10.6 12.3a2.2 2 0 0 1 2.6-0.4" stroke="#F3E6D4" strokeWidth={0.8} strokeLinecap="round" fill="none" opacity={0.6} />
+          </>
+        )}
       </Svg>
     );
   }

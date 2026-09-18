@@ -366,7 +366,7 @@ export function WorkoutScreen() {
 
       <View style={[styles.header, { height: headerHeight }]}>
         <View style={styles.avocadoBadge} pointerEvents="none">
-          <ColorIcon name="avocado" size={AVOCADO_SIZE} avocadoPalette={AVOCADO_FIRE_PALETTE} />
+          <ColorIcon name="avocado" size={AVOCADO_SIZE} avocadoPalette={AVOCADO_FIRE_PALETTE} avocadoPitStyle="plate" />
         </View>
         <View style={[styles.headerRow, { marginTop: insets.top + spacing.md }]}>
           <Text style={styles.headerTitle}>{t('workout.title')}</Text>
