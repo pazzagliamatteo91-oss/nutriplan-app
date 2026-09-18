@@ -18,6 +18,7 @@ import { LANGUAGES, LanguageCode, OptionDict } from '../i18n';
 type PickerKey = 'eta' | 'peso' | 'altezza' | 'kcal' | 'proteine' | 'stileVita' | 'obiettivo' | 'lingua' | null;
 
 const HEADER_HEIGHT = 110;
+const AVOCADO_SIZE = 150;
 
 const ETA_OPTIONS = Array.from({ length: 90 - 14 + 1 }, (_, i) => 14 + i);
 const PESO_OPTIONS = Array.from({ length: 180 - 30 + 1 }, (_, i) => 30 + i);
@@ -153,8 +154,8 @@ export function ProfileScreen() {
       </ScrollView>
 
       <View style={[styles.header, { height: insets.top + HEADER_HEIGHT }]}>
-        <View style={[styles.avocadoBadge, { top: insets.top - 6 }]}>
-          <ColorIcon name="avocado" size={76} />
+        <View style={styles.avocadoBadge} pointerEvents="none">
+          <ColorIcon name="avocado" size={AVOCADO_SIZE} />
         </View>
         <View style={[styles.headerRow, { marginTop: insets.top + spacing.sm }]}>
           <Avatar
@@ -243,14 +244,17 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: colors.background,
+    overflow: 'hidden',
     zIndex: 10,
   },
   avocadoBadge: {
     position: 'absolute',
-    right: spacing.lg,
+    top: -36,
+    right: -36,
+    opacity: 0.22,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg },
-  namePressable: { flex: 1, paddingRight: 90 },
+  namePressable: { flex: 1, paddingRight: 80 },
   name: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.text },
   editHint: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 2 },
   content: { padding: spacing.lg },

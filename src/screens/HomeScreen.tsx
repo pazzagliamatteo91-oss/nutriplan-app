@@ -21,6 +21,7 @@ import { INTL_LOCALE, pick } from '../i18n';
 import type { RootTabParamList } from '../navigation/types';
 
 const HEADER_HEIGHT = 110;
+const AVOCADO_SIZE = 150;
 
 function formatToday(locale: string) {
   const label = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -150,8 +151,8 @@ export function HomeScreen() {
       </ScrollView>
 
       <View style={[styles.header, { height: insets.top + HEADER_HEIGHT }]}>
-        <View style={[styles.avocadoBadge, { top: insets.top - 6 }]}>
-          <ColorIcon name="avocado" size={76} />
+        <View style={styles.avocadoBadge} pointerEvents="none">
+          <ColorIcon name="avocado" size={AVOCADO_SIZE} />
         </View>
         <View style={[styles.headerRow, { marginTop: insets.top + spacing.sm }]}>
           <Avatar uri={profile.avatarUri} iconName={profile.avatarIcon as any} size={52} />
@@ -179,11 +180,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: colors.background,
+    overflow: 'hidden',
     zIndex: 10,
   },
   avocadoBadge: {
     position: 'absolute',
-    right: spacing.lg,
+    top: -36,
+    right: -36,
+    opacity: 0.22,
   },
   headerRow: {
     flexDirection: 'row',
@@ -193,7 +197,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
-    paddingRight: 90,
+    paddingRight: 80,
   },
   name: {
     fontFamily: fonts.headingBold,
