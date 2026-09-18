@@ -11,7 +11,6 @@ import { Icon, IconName } from '../components/Icon';
 import { ColorIcon, ColorIconName } from '../components/ColorIcon';
 import { ProgressBar } from '../components/ProgressBar';
 import { DiaryEntryModal } from '../components/DiaryEntryModal';
-import { AvocadoWaveHeader } from '../components/AvocadoWaveHeader';
 import { WellnessSyncModal } from '../components/WellnessSyncModal';
 import { useApp } from '../context/AppContext';
 import { RECIPES } from '../data/recipes';
@@ -21,7 +20,7 @@ import { toDateKey } from '../data/mealPlan';
 import { INTL_LOCALE, pick } from '../i18n';
 import type { RootTabParamList } from '../navigation/types';
 
-const HEADER_HEIGHT = 190;
+const HEADER_HEIGHT = 110;
 
 function formatToday(locale: string) {
   const label = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -151,12 +150,14 @@ export function HomeScreen() {
       </ScrollView>
 
       <View style={[styles.header, { height: insets.top + HEADER_HEIGHT }]}>
-        <AvocadoWaveHeader />
+        <View style={[styles.avocadoBadge, { top: insets.top - 6 }]}>
+          <ColorIcon name="avocado" size={76} />
+        </View>
         <View style={[styles.headerRow, { marginTop: insets.top + spacing.sm }]}>
           <Avatar uri={profile.avatarUri} iconName={profile.avatarIcon as any} size={52} />
           <View style={styles.headerText}>
-            <Text style={styles.name}>{profile.nome}</Text>
-            <Text style={styles.date}>{formatToday(intlLocale)}</Text>
+            <Text style={styles.name} numberOfLines={1}>{profile.nome}</Text>
+            <Text style={styles.date} numberOfLines={1}>{formatToday(intlLocale)}</Text>
           </View>
         </View>
       </View>
@@ -177,8 +178,12 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    overflow: 'hidden',
+    backgroundColor: colors.background,
     zIndex: 10,
+  },
+  avocadoBadge: {
+    position: 'absolute',
+    right: spacing.lg,
   },
   headerRow: {
     flexDirection: 'row',
@@ -188,17 +193,17 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
+    paddingRight: 90,
   },
   name: {
     fontFamily: fonts.headingBold,
     fontSize: 22,
-    color: colors.accentText,
+    color: colors.text,
   },
   date: {
     fontFamily: fonts.body,
     fontSize: 13,
-    color: colors.accentText,
-    opacity: 0.75,
+    color: colors.textMuted,
     marginTop: 2,
   },
   content: {

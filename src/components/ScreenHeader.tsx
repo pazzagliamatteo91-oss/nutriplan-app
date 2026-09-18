@@ -2,14 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, spacing } from '../theme';
-import { AvocadoWaveHeader } from './AvocadoWaveHeader';
+import { ColorIcon } from './ColorIcon';
 
 type Props = {
   title: string;
   right?: React.ReactNode;
 };
 
-const HEADER_HEIGHT = 190;
+const HEADER_HEIGHT = 110;
 
 // Altezza totale dell'header (safe-area inclusa): usata dagli schermi per dare
 // alla loro ScrollView/FlatList un paddingTop che parte subito sotto il titolo,
@@ -19,17 +19,17 @@ export function useScreenHeaderHeight() {
   return insets.top + HEADER_HEIGHT;
 }
 
-// Header superiore "a fetta di avocado": l'area colorata scende ben oltre il
-// titolo, con un bordo inferiore a onda (non un semplice angolo arrotondato).
-// E' un overlay assoluto sopra il contenuto: durante lo scroll le card passano
-// dietro l'header (che resta fermo e opaco) invece di lasciare una linea di
-// demarcazione visibile.
+// Header superiore piatto (sfondo uguale al resto dell'app, senza fascia
+// colorata): solo il titolo a sinistra e una grande icona avocado decorativa
+// in alto a destra, la stessa usata per la tab Profilo ma più grande.
 export function ScreenHeader({ title, right }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.container, { height: insets.top + HEADER_HEIGHT }]}>
-      <AvocadoWaveHeader />
-      <View style={[styles.row, { marginTop: insets.top + spacing.sm }]}>
+      <View style={[styles.avocadoBadge, { top: insets.top - 6 }]}>
+        <ColorIcon name="avocado" size={76} />
+      </View>
+      <View style={[styles.row, { marginTop: insets.top + spacing.md }]}>
         <Text style={styles.title}>{title}</Text>
         {right}
       </View>
@@ -43,18 +43,26 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    overflow: 'hidden',
+    backgroundColor: colors.background,
     zIndex: 10,
+  },
+  avocadoBadge: {
+    position: 'absolute',
+    right: spacing.lg,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
+    paddingLeft: spacing.lg,
+    // Lascia spazio all'icona avocado assoluta in alto a destra, cosi' un
+    // eventuale elemento "right" (es. il pulsante "Pianifica" in Ricette)
+    // non ci finisce sotto.
+    paddingRight: spacing.lg + 76 + spacing.sm,
   },
   title: {
     fontFamily: fonts.headingBold,
     fontSize: 24,
-    color: colors.accentText,
+    color: colors.text,
   },
 });

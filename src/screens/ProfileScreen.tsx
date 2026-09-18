@@ -9,7 +9,7 @@ import { SectionHeader } from '../components/SectionHeader';
 import { ListRow } from '../components/ListRow';
 import { OptionGroup, Option } from '../components/OptionGroup';
 import { WheelPickerModal } from '../components/WheelPickerModal';
-import { AvocadoWaveHeader } from '../components/AvocadoWaveHeader';
+import { ColorIcon } from '../components/ColorIcon';
 import { IconName } from '../components/Icon';
 import { useApp } from '../context/AppContext';
 import { CUISINES, RESTRICTIONS, INTOLERANCES, ALLERGIES, LIFESTYLES, GOALS } from '../data/constants';
@@ -17,7 +17,7 @@ import { LANGUAGES, LanguageCode, OptionDict } from '../i18n';
 
 type PickerKey = 'eta' | 'peso' | 'altezza' | 'kcal' | 'proteine' | 'stileVita' | 'obiettivo' | 'lingua' | null;
 
-const HEADER_HEIGHT = 140;
+const HEADER_HEIGHT = 110;
 
 const ETA_OPTIONS = Array.from({ length: 90 - 14 + 1 }, (_, i) => 14 + i);
 const PESO_OPTIONS = Array.from({ length: 180 - 30 + 1 }, (_, i) => 30 + i);
@@ -153,7 +153,9 @@ export function ProfileScreen() {
       </ScrollView>
 
       <View style={[styles.header, { height: insets.top + HEADER_HEIGHT }]}>
-        <AvocadoWaveHeader />
+        <View style={[styles.avocadoBadge, { top: insets.top - 6 }]}>
+          <ColorIcon name="avocado" size={76} />
+        </View>
         <View style={[styles.headerRow, { marginTop: insets.top + spacing.sm }]}>
           <Avatar
             uri={profile.avatarUri}
@@ -167,10 +169,10 @@ export function ProfileScreen() {
               setDraftName(profile.nome);
               setNameModalOpen(true);
             }}
-            style={{ flex: 1 }}
+            style={styles.namePressable}
           >
-            <Text style={styles.name}>{profile.nome}</Text>
-            <Text style={styles.editHint}>{t('profile.editNameHint')}</Text>
+            <Text style={styles.name} numberOfLines={1}>{profile.nome}</Text>
+            <Text style={styles.editHint} numberOfLines={1}>{t('profile.editNameHint')}</Text>
           </Pressable>
         </View>
       </View>
@@ -240,12 +242,17 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    overflow: 'hidden',
+    backgroundColor: colors.background,
     zIndex: 10,
   },
+  avocadoBadge: {
+    position: 'absolute',
+    right: spacing.lg,
+  },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg },
-  name: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.accentText },
-  editHint: { fontFamily: fonts.body, fontSize: 12, color: colors.accentText, opacity: 0.7, marginTop: 2 },
+  namePressable: { flex: 1, paddingRight: 90 },
+  name: { fontFamily: fonts.headingBold, fontSize: 22, color: colors.text },
+  editHint: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 2 },
   content: { padding: spacing.lg },
   rowsCard: { marginBottom: spacing.lg, paddingVertical: 4 },
   optionsCard: { marginBottom: spacing.lg },
