@@ -199,6 +199,114 @@ export type AiWorkoutPlan = {
   defaticamentoMobilita: AiDefaticamentoItem[];
 };
 
+// --- Wellness Engine IA: sincronizzazione allenamento + nutrizione + spesa + analisi ---
+
+export type WellnessSyncRequestParams = {
+  sport: AiWorkoutSport;
+  livello: WorkoutLevel;
+  tipoSessione: WorkoutSessionType;
+  numeroScheda: number;
+  attrezzatura: string;
+  limitazioni: string;
+  lingua: 'it' | 'en';
+};
+
+export type WellnessAnalisiInput = {
+  parametro: string;
+  valore: number;
+  unita: string;
+  rangeMin: number;
+  rangeMax: number;
+  stato: string;
+};
+
+export type WellnessSyncInput = WellnessSyncRequestParams & {
+  profilo: {
+    nome: string;
+    eta: number;
+    pesoKg: number;
+    altezzaCm: number;
+    stileVita: string;
+    obiettivo: string;
+  };
+  intolleranzeAllergie: string[];
+  baselineNutrizionale: { kcal: number; proteineG: number };
+  analisiEmaticheRecenti: WellnessAnalisiInput[];
+  metricheSmartwatch: MetricheSmartwatch | null;
+  carichiIniziali: CarichiRiferimento;
+};
+
+export type WellnessProfiloAggiornato = {
+  fabbisognoKcalBaseline: number;
+  aggiustamentoKcalApplicato: string;
+  fabbisognoKcalOggi: number;
+  proteineTargetG: number;
+  carboidratiTargetG: number;
+  grassiTargetG: number;
+  insightAiGiornaliero: string;
+};
+
+export type WellnessAllenamento = {
+  sport: string;
+  tipoSessione: string;
+  numeroScheda: number;
+  focusTecnico: string;
+  adattamentoSmartwatchApplicato: string;
+  riscaldamento: { esercizio: string; durataORip: string }[];
+  bloccoPrincipale: {
+    nomeEsercizio: string;
+    serie: number;
+    ripetizioni: string;
+    recuperoSecondi: number;
+    rpeTarget: number;
+    caricoSuggerito: string;
+    tempoEsecutivo: string;
+    motivoBiomeccanico: string;
+  }[];
+  defaticamento: { esercizio: string; durata: string }[];
+};
+
+export type WellnessIngrediente = { nome: string; quantitaG: number };
+
+export type WellnessPastoGenerato = {
+  pasto: string;
+  nomeRicetta: string;
+  tempoPreparazioneMin: number;
+  kcal: number;
+  compatibileIntolleranze: boolean;
+  ingredienti: WellnessIngrediente[];
+};
+
+export type WellnessListaSpesaCategoria = {
+  categoria: string;
+  elementi: { ingrediente: string; quantitaTotale: string }[];
+};
+
+export type WellnessListaSpesa = {
+  copertura: string;
+  categorie: WellnessListaSpesaCategoria[];
+};
+
+export type WellnessAnomaliaEmatica = {
+  parametro: string;
+  valoreRilevato: string;
+  spuntoDaDiscuterreColMedico: string;
+};
+
+export type WellnessAnalisiEmaticheReport = {
+  disclaimer: string;
+  statoGenerale: string;
+  anomalieRilevate: WellnessAnomaliaEmatica[];
+};
+
+export type WellnessEcosistema = {
+  profiloAggiornato: WellnessProfiloAggiornato;
+  allenamento: WellnessAllenamento;
+  pianoNutrizionaleOggi: WellnessPastoGenerato[];
+  listaSpesa: WellnessListaSpesa;
+  analisiEmaticheReport: WellnessAnalisiEmaticheReport;
+};
+
 export type ShoppingItem = {
   id: string;
   nome: Bilingual;

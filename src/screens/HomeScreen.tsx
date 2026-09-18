@@ -11,6 +11,7 @@ import { ColorIcon, ColorIconName } from '../components/ColorIcon';
 import { ProgressBar } from '../components/ProgressBar';
 import { DiaryEntryModal } from '../components/DiaryEntryModal';
 import { AvocadoWaveHeader } from '../components/AvocadoWaveHeader';
+import { WellnessSyncModal } from '../components/WellnessSyncModal';
 import { useApp } from '../context/AppContext';
 import { RECIPES } from '../data/recipes';
 import { visibleRecipes } from '../data/recipeFilters';
@@ -39,6 +40,7 @@ export function HomeScreen() {
   const { profile, shoppingItems, analysisValues, lastWorkoutLog, diaryEntries, removeDiaryEntry, language, t, locale } = useApp();
   const intlLocale = INTL_LOCALE[language] ?? 'it-IT';
   const [diaryModalOpen, setDiaryModalOpen] = useState(false);
+  const [wellnessModalOpen, setWellnessModalOpen] = useState(false);
 
   const today = toDateKey(new Date());
   const todayEntries = useMemo(() => diaryEntries.filter((e) => e.data === today), [diaryEntries, today]);
@@ -117,6 +119,17 @@ export function HomeScreen() {
           )}
         </Card>
 
+        <Pressable style={styles.wellnessCta} onPress={() => setWellnessModalOpen(true)}>
+          <View style={styles.wellnessCtaIcon}>
+            <Icon name="sparkle" size={20} color={colors.highlight} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.wellnessCtaTitle}>{t('wellness.ctaTitle')}</Text>
+            <Text style={styles.wellnessCtaSubtitle}>{t('wellness.ctaSubtitle')}</Text>
+          </View>
+          <Icon name="chevronRight" size={18} color={colors.textFaint} />
+        </Pressable>
+
         <View style={styles.grid}>
           {tiles.map((tile) => (
             <Card key={tile.key} style={styles.tile} onPress={() => navigation.navigate(tile.key)}>
@@ -142,6 +155,7 @@ export function HomeScreen() {
       </View>
 
       <DiaryEntryModal visible={diaryModalOpen} onClose={() => setDiaryModalOpen(false)} />
+      <WellnessSyncModal visible={wellnessModalOpen} onClose={() => setWellnessModalOpen(false)} />
     </View>
   );
 }
@@ -224,6 +238,24 @@ const styles = StyleSheet.create({
   },
   diaryRowName: { flex: 1, fontFamily: fonts.body, fontSize: 13, color: colors.text },
   diaryRowKcal: { fontFamily: fonts.bodyMedium, fontSize: 12, color: colors.textMuted },
+  wellnessCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.panel,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  wellnessCtaIcon: {
+    width: 40, height: 40, borderRadius: radii.sm,
+    backgroundColor: colors.panelAlt,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  wellnessCtaTitle: { fontFamily: fonts.bodySemiBold, fontSize: 14.5, color: colors.text },
+  wellnessCtaSubtitle: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, marginTop: 1 },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

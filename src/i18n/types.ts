@@ -195,6 +195,26 @@ export type Locale = {
     aiResultClose: string;
     aiResultNewGeneration: string;
   };
+  wellness: {
+    ctaTitle: string;
+    ctaSubtitle: string;
+    modalTitle: string;
+    generateButton: string;
+    generating: string;
+    sectionAllenamento: string;
+    sectionNutrizione: string;
+    sectionSpesa: string;
+    sectionAnalisi: string;
+    kcalBaselineLabel: string; // {n}
+    kcalTodayLabel: string; // {n}
+    macroTargetLabel: string; // {p} {c} {g}
+    mealMeta: string; // {min} {kcal}
+    shoppingCoverageToday: string;
+    shoppingCoverageWeek: string;
+    noAnomalies: string;
+    mealIntoleranceWarning: string;
+    resultSyncAgain: string;
+  };
   mealPlan: {
     title: string;
     interval: string;
