@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import Svg, { Rect, Path, Ellipse, Circle, Defs, ClipPath, G } from 'react-native-svg';
+import Svg, { Rect, Path, Circle, Defs, ClipPath, RadialGradient, Stop, G } from 'react-native-svg';
 import { colors } from '../theme';
 
 // Sfondo per gli header di sezione ispirato a una fetta di avocado: la buccia
@@ -8,9 +8,14 @@ import { colors } from '../theme';
 // il nocciolo (marrone chiaro) affiora solo nell'angolo in alto a destra.
 // Il bordo inferiore non è un semplice angolo arrotondato: è un'onda morbida
 // che resta più corta vicino al contenuto a sinistra e scende più in basso
-// verso destra. Buccia/polpa/nocciolo sono un'ellisse e un cerchio pieni —
-// le forme tonde e concentriche di un vero avocado tagliato — invece di
-// bande diagonali ad angoli vivi.
+// verso destra.
+//
+// La buccia non è una forma indipendente: la polpa è lo stesso identico
+// profilo dell'onda esterna, semplicemente rimpicciolito e riposizionato
+// (scale + translate) per stare arretrato di un margine costante. Essendo
+// la stessa curva, ha garantito lo stesso identico "ritmo" del bordo —
+// non un'approssimazione — come la buccia vera di un avocado che segue
+// il profilo della polpa sottostante restando più sottile.
 //
 // L'header è un overlay sopra lo ScrollView: sotto la curva non deve essere
 // disegnato nulla, cosi' il contenuto che scorre resta visibile fino a quel
@@ -36,14 +41,19 @@ export function AvocadoWaveHeader() {
         <ClipPath id="avocadoWaveClip">
           <Path d={WAVE_SILHOUETTE} />
         </ClipPath>
+        <RadialGradient id="avocadoPitGradient" cx="35%" cy="32%" r="72%">
+          <Stop offset="0%" stopColor="#E8CBA0" />
+          <Stop offset="100%" stopColor={colors.wavePit} />
+        </RadialGradient>
       </Defs>
       <G clipPath="url(#avocadoWaveClip)">
         {/* Buccia: verde scuro, resta visibile come un bordo lungo tutto il perimetro */}
         <Rect x={0} y={0} width={400} height={220} fill={colors.waveSkin} />
-        {/* Polpa: un'ellisse morbida, come la sezione interna di un avocado */}
-        <Ellipse cx={280} cy={155} rx={165} ry={150} fill={colors.waveFlesh} />
-        {/* Nocciolo: un cerchio pieno spostato dal centro, come in un avocado vero */}
-        <Circle cx={350} cy={120} r={48} fill={colors.wavePit} />
+        {/* Polpa: stessa curva dell'onda esterna, rimpicciolita e arretrata di un
+            margine costante — stessa sinuosità, garantita perché è la stessa forma */}
+        <Path d={WAVE_SILHOUETTE} fill={colors.waveFlesh} transform="translate(24,24) scale(0.88,0.7273)" />
+        {/* Nocciolo: un cerchio con una leggera sfumatura, come in un avocado vero */}
+        <Circle cx={325} cy={60} r={46} fill="url(#avocadoPitGradient)" />
       </G>
     </Svg>
   );
