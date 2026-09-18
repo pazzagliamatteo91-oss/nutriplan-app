@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, fonts, radii, spacing } from '../theme';
+import { colors, fonts, radii, spacing, shadow } from '../theme';
 import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
 import { Icon, IconName } from '../components/Icon';
@@ -131,18 +131,19 @@ export function WorkoutScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: headerHeight + spacing.lg }]} showsVerticalScrollIndicator={false}>
-        <Card style={styles.consistencyCard}>
+        <Card style={[styles.consistencyCard, shadow.md]}>
           <View style={styles.consistencyHeader}>
             <Text style={styles.consistencyTitle}>{t('workout.consistencyTitle')}</Text>
             {streak > 0 && (
               <View style={styles.streakPill}>
-                <Icon name="flame" size={13} color={colors.highlight} />
+                <Icon name="flame" size={13} color={colors.white} />
                 <Text style={styles.streakLabel}>{t(streak === 1 ? 'workout.streakLabelOne' : 'workout.streakLabel', { n: streak })}</Text>
               </View>
             )}
           </View>
           <View style={styles.consistencyBody}>
             <ConsistencyRing
+              size={116}
               outerPercent={outerRingPercent}
               innerPercent={innerRingPercent}
               centerLabel={`${thisWeek}/${weeklyGoal}`}
@@ -172,8 +173,16 @@ export function WorkoutScreen() {
           {MAIN_SPORTS.map((s) => {
             const active = sportId === s.id;
             return (
-              <Pressable key={s.id} style={[styles.sportChip, active && styles.sportChipActive]} onPress={() => setSport(s.id)}>
-                <Icon name={SPORT_ICONS[s.id]} size={20} color={active ? colors.accentText : colors.text} />
+              <Pressable key={s.id} style={styles.sportChip} onPress={() => setSport(s.id)}>
+                {active && (
+                  <LinearGradient
+                    colors={[colors.berry, '#8A2F22']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                  />
+                )}
+                <Icon name={SPORT_ICONS[s.id]} size={20} color={active ? colors.white : colors.text} />
                 <Text style={[styles.sportLabel, active && styles.sportLabelActive]} numberOfLines={1}>
                   {locale.mainSports[s.id] ?? s.label}
                 </Text>
@@ -235,7 +244,7 @@ export function WorkoutScreen() {
             </View>
             <View style={styles.heroCard}>
               <LinearGradient
-                colors={[colors.wavePit, '#4A331F']}
+                colors={[colors.berry, '#7A2318']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={StyleSheet.absoluteFill}
@@ -255,7 +264,7 @@ export function WorkoutScreen() {
 
         <Text style={styles.sectionTitle}>{t('workout.weekPlanTitle', { sport: sportLabel(sportId), level: locale.workoutLevels[livello] ?? livello })}</Text>
         <Text style={styles.sectionSubtitle}>{t('workout.weekPlanSubtitle')}</Text>
-        <Card style={styles.weekCard}>
+        <Card style={[styles.weekCard, shadow.sm]}>
           {weekPlan.map((day, idx) => {
             const isExpanded = expandedDay === day.giorno;
             const activeTab = dayTab[day.giorno] ?? 'specifico';
@@ -429,8 +438,8 @@ const styles = StyleSheet.create({
   consistencyCard: { marginBottom: spacing.lg },
   consistencyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
   consistencyTitle: { fontFamily: fonts.heading, fontSize: 15, color: colors.text },
-  streakPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.panelAlt, paddingVertical: 4, paddingHorizontal: 10, borderRadius: radii.pill },
-  streakLabel: { fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.highlight },
+  streakPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: colors.berry, paddingVertical: 5, paddingHorizontal: 11, borderRadius: radii.pill },
+  streakLabel: { fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.white },
   consistencyBody: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   consistencyInfo: { flex: 1, gap: spacing.sm },
   weekStripWrap: { marginTop: spacing.lg, alignItems: 'center' },
@@ -449,10 +458,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     borderRadius: radii.md,
     backgroundColor: colors.panel,
+    overflow: 'hidden',
   },
-  sportChipActive: { backgroundColor: colors.accent },
   sportLabel: { fontFamily: fonts.bodyMedium, fontSize: 12.5, color: colors.text, textAlign: 'center' },
-  sportLabelActive: { color: colors.accentText, fontFamily: fonts.bodySemiBold },
+  sportLabelActive: { color: colors.white, fontFamily: fonts.bodySemiBold },
   currentExtended: { fontFamily: fonts.body, fontSize: 12, color: colors.highlight, marginBottom: spacing.md },
   levelRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: spacing.lg },
   sessionRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.lg },
@@ -491,7 +500,7 @@ const styles = StyleSheet.create({
   },
   heroTextWrap: { gap: 2 },
   heroCount: { fontFamily: fonts.bodySemiBold, fontSize: 11, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: 0.3 },
-  heroTitle: { fontFamily: fonts.headingBold, fontSize: 19, color: colors.white },
+  heroTitle: { fontFamily: fonts.headingBold, fontSize: 21, color: colors.white },
   heroSubtitle: { fontFamily: fonts.body, fontSize: 12.5, color: 'rgba(255,255,255,0.8)' },
   schedaSection: { marginBottom: spacing.lg },
   moduleChipsRow: { flexDirection: 'row', flexWrap: 'wrap' },

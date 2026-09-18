@@ -90,6 +90,6 @@ export function ConsistencyRing({ outerPercent, innerPercent, size = 100, center
 
 const styles = StyleSheet.create({
   center: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
-  centerLabel: { fontFamily: fonts.headingBold, fontSize: 17, color: colors.text },
-  centerSubLabel: { fontFamily: fonts.body, fontSize: 9.5, color: colors.textMuted },
+  centerLabel: { fontFamily: fonts.headingBold, fontSize: 21, color: colors.text },
+  centerSubLabel: { fontFamily: fonts.bodySemiBold, fontSize: 10, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.3 },
 });
