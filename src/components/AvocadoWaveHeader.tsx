@@ -41,9 +41,9 @@ export function AvocadoWaveHeader() {
         {/* Buccia: verde scuro, resta visibile come un bordo lungo tutto il perimetro */}
         <Rect x={0} y={0} width={400} height={220} fill={colors.waveSkin} />
         {/* Polpa: un'ellisse morbida, come la sezione interna di un avocado */}
-        <Ellipse cx={270} cy={90} rx={150} ry={130} fill={colors.waveFlesh} />
+        <Ellipse cx={280} cy={155} rx={165} ry={150} fill={colors.waveFlesh} />
         {/* Nocciolo: un cerchio pieno spostato dal centro, come in un avocado vero */}
-        <Circle cx={345} cy={55} r={48} fill={colors.wavePit} />
+        <Circle cx={350} cy={120} r={48} fill={colors.wavePit} />
       </G>
     </Svg>
   );
