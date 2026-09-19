@@ -35,6 +35,9 @@ export const SPORT_HEALTH_MAPPING: Record<string, SportHealthMapping> = {
   corsa: { healthKit: 'Running', healthConnect: 'EXERCISE_TYPE_RUNNING' },
   ciclismo: { healthKit: 'Cycling', healthConnect: 'EXERCISE_TYPE_BIKING' },
   nuoto: { healthKit: 'Swimming', healthConnect: 'EXERCISE_TYPE_SWIMMING_POOL' },
+
+  // --- Voci storiche, non più tra i MAIN_SPORTS ma utili come riferimento
+  // per il riconoscimento automatico di attività rilevate dallo smartwatch ---
   tennis: { healthKit: 'Tennis', healthConnect: 'EXERCISE_TYPE_TENNIS' },
   palestra: { healthKit: 'TraditionalStrengthTraining', healthConnect: 'EXERCISE_TYPE_STRENGTH_TRAINING' },
   yoga: { healthKit: 'Yoga', healthConnect: 'EXERCISE_TYPE_YOGA' },
@@ -120,6 +123,7 @@ export const SPORT_HEALTH_MAPPING: Record<string, SportHealthMapping> = {
   calisthenics: { healthKit: 'FunctionalStrengthTraining', healthConnect: 'EXERCISE_TYPE_CALISTHENICS' },
   'functional-training': { healthKit: 'FunctionalStrengthTraining', healthConnect: 'EXERCISE_TYPE_STRENGTH_TRAINING' },
   hiit: { healthKit: 'HighIntensityIntervalTraining', healthConnect: 'EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING' },
+  hyrox: { healthKit: 'CrossTraining', healthConnect: 'EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING' }, // verificare: nessun tipo dedicato su nessuna delle due piattaforme
   pilates: { healthKit: 'Pilates', healthConnect: 'EXERCISE_TYPE_PILATES' },
 
   // --- Danza ---

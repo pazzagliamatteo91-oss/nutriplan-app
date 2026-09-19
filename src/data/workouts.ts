@@ -9,12 +9,12 @@ import { toDateKey } from './mealPlan';
 export function generateMockWorkoutLog(): WorkoutLogEntry[] {
   const entries: { n: number; sportId: string }[] = [
     { n: 1, sportId: 'corsa' },
-    { n: 3, sportId: 'palestra' },
+    { n: 3, sportId: 'functional-training' },
     { n: 5, sportId: 'corsa' },
     { n: 9, sportId: 'corsa' },
-    { n: 12, sportId: 'palestra' },
+    { n: 12, sportId: 'functional-training' },
     { n: 16, sportId: 'corsa' },
-    { n: 20, sportId: 'palestra' },
+    { n: 20, sportId: 'functional-training' },
     { n: 23, sportId: 'corsa' },
     { n: 27, sportId: 'corsa' },
   ];
@@ -41,30 +41,27 @@ export const SPORT_ICONS: Record<string, IconName> = {
   corsa: 'running',
   ciclismo: 'cycling',
   nuoto: 'swimming',
-  tennis: 'tennis',
-  palestra: 'gym',
-  yoga: 'yoga',
-  calcio: 'soccer',
+  'functional-training': 'gym',
+  hyrox: 'kettlebell',
+  pilates: 'pilatesRing',
 };
 
 const SPECIFICO_LABELS: Record<string, Bilingual> = {
   corsa: bi('Sessione tecnica di corsa', 'Running technical session'),
   ciclismo: bi('Uscita con variazioni di ritmo', 'Ride with pace variations'),
   nuoto: bi('Sessione tecnica in vasca', 'Technical pool session'),
-  tennis: bi('Sessione tecnica su campo', 'On-court technical session'),
-  palestra: bi('Scheda di forza', 'Strength program'),
-  yoga: bi('Sequenza di asana', 'Asana sequence'),
-  calcio: bi('Sessione tecnico-tattica', 'Technical-tactical session'),
+  'functional-training': bi('Circuito funzionale ad alta intensità', 'High-intensity functional circuit'),
+  hyrox: bi('Simulazione stazioni Hyrox', 'Hyrox station simulation'),
+  pilates: bi('Sequenza di controllo e core', 'Control and core sequence'),
 };
 
 const SUPPORTO_LABELS: Record<string, Bilingual> = {
   corsa: bi('Rinforzo e mobilità', 'Strengthening and mobility'),
   ciclismo: bi('Forza per gambe e core', 'Strength for legs and core'),
   nuoto: bi('Mobilità e potenziamento a secco', 'Dryland mobility and conditioning'),
-  tennis: bi('Cardio e reattività', 'Cardio and reactivity'),
-  palestra: bi('Cardio complementare', 'Complementary cardio'),
-  yoga: bi('Camminata e respirazione', 'Walking and breathing'),
-  calcio: bi('Cardio e prevenzione infortuni', 'Cardio and injury prevention'),
+  'functional-training': bi('Mobilità e core', 'Mobility and core'),
+  hyrox: bi('Forza per le stazioni', 'Strength for the stations'),
+  pilates: bi('Camminata e respirazione', 'Walking and breathing'),
 };
 
 // --- Esercizi -----------------------------------------------------------
@@ -173,62 +170,51 @@ const SPORT_POOLS: Record<string, SportPools> = {
       { nome: bi('Russian twist', 'Russian twist'), kind: 'reps', serie: 3, ripetizioni: 20 },
     ],
   },
-  tennis: {
+  'functional-training': {
     specifico: [
-      { nome: bi('Riscaldamento palleggi', 'Warm-up rallies'), kind: 'duration', minuti: 10 },
-      { nome: bi('Dritto e rovescio cross court', 'Cross-court forehand and backhand'), kind: 'duration', minuti: 20 },
-      { nome: bi('Servizio e risposta', 'Serve and return'), kind: 'duration', minuti: 20 },
-      { nome: bi('Punti simulati', 'Simulated points'), kind: 'duration', minuti: 25 },
-      { nome: bi('Footwork a scaletta', 'Ladder footwork'), kind: 'duration', minuti: 8 },
+      { nome: bi('Riscaldamento dinamico', 'Dynamic warm-up'), kind: 'duration', minuti: 8 },
+      { nome: bi('Kettlebell swing', 'Kettlebell swing'), kind: 'reps', serie: 4, ripetizioni: 15 },
+      { nome: bi('Burpees', 'Burpees'), kind: 'reps', serie: 4, ripetizioni: 12 },
+      { nome: bi('Circuito funzionale a stazioni', 'Functional station circuit'), kind: 'count', conteggio: 4 },
+      { nome: bi('Defaticamento e mobilità', 'Cool-down and mobility'), kind: 'duration', minuti: 8 },
     ],
     supporto: [
-      { nome: bi('Scatti laterali 20m', '20m lateral sprints'), kind: 'count', conteggio: 5 },
-      { nome: bi('Plank con rotazione', 'Plank with rotation'), kind: 'reps', serie: 3, ripetizioni: 12 },
-      { nome: bi('Squat jump', 'Squat jump'), kind: 'reps', serie: 3, ripetizioni: 10 },
-      { nome: bi('Stretching spalle e polsi', 'Shoulder and wrist stretching'), kind: 'duration', minuti: 8 },
-    ],
-  },
-  palestra: {
-    specifico: [
-      { nome: bi('Squat', 'Squat'), kind: 'reps', serie: 4, ripetizioni: 8 },
-      { nome: bi('Panca piana', 'Bench press'), kind: 'reps', serie: 4, ripetizioni: 8 },
-      { nome: bi('Stacco da terra', 'Deadlift'), kind: 'reps', serie: 3, ripetizioni: 6 },
-      { nome: bi('Military press', 'Military press'), kind: 'reps', serie: 3, ripetizioni: 10 },
-      { nome: bi('Trazioni o lat machine', 'Pull-ups or lat pulldown'), kind: 'reps', serie: 3, ripetizioni: 10 },
-    ],
-    supporto: [
-      { nome: bi('Tapis roulant o cyclette moderato', 'Moderate treadmill or stationary bike'), kind: 'duration', minuti: 20 },
-      { nome: bi('Plank', 'Plank'), kind: 'time', serie: 3, secondi: 45 },
-      { nome: bi('Mobilità generale', 'General mobility'), kind: 'duration', minuti: 10 },
-    ],
-  },
-  yoga: {
-    specifico: [
-      { nome: bi('Saluto al sole', 'Sun salutation'), kind: 'count', conteggio: 5 },
-      { nome: bi('Sequenza guerriero I-II-III', 'Warrior I-II-III sequence'), kind: 'duration', minuti: 10 },
-      { nome: bi('Posizioni di equilibrio (albero, sedia)', 'Balance poses (tree, chair)'), kind: 'duration', minuti: 8 },
-      { nome: bi('Torsioni da seduti', 'Seated twists'), kind: 'duration', minuti: 8 },
-      { nome: bi('Rilassamento finale (savasana)', 'Final relaxation (savasana)'), kind: 'duration', minuti: 10 },
-    ],
-    supporto: [
-      { nome: bi('Camminata leggera', 'Light walk'), kind: 'duration', minuti: 20 },
-      { nome: bi('Respirazione diaframmatica', 'Diaphragmatic breathing'), kind: 'duration', minuti: 10 },
-      { nome: bi('Stretching dolce', 'Gentle stretching'), kind: 'duration', minuti: 10 },
-    ],
-  },
-  calcio: {
-    specifico: [
-      { nome: bi('Riscaldamento con palla', 'Warm-up with the ball'), kind: 'duration', minuti: 10 },
-      { nome: bi('Passaggi e controllo', 'Passing and ball control'), kind: 'duration', minuti: 20 },
-      { nome: bi('Conduzione e dribbling', 'Dribbling and ball carrying'), kind: 'duration', minuti: 15 },
-      { nome: bi('Tiri in porta', 'Shots on goal'), kind: 'duration', minuti: 15 },
-      { nome: bi('Partitella a possesso palla', 'Possession small-sided game'), kind: 'duration', minuti: 20 },
-    ],
-    supporto: [
-      { nome: bi('Scatti brevi 20m', '20m short sprints'), kind: 'count', conteggio: 6 },
-      { nome: bi('Squat jump', 'Squat jump'), kind: 'reps', serie: 3, ripetizioni: 12 },
       { nome: bi('Plank', 'Plank'), kind: 'time', serie: 3, secondi: 40 },
-      { nome: bi('Stretching gambe', 'Leg stretching'), kind: 'duration', minuti: 8 },
+      { nome: bi('Mobilità anche e spalle', 'Hip and shoulder mobility'), kind: 'duration', minuti: 10 },
+      { nome: bi('Stretching generale', 'General stretching'), kind: 'duration', minuti: 10 },
+    ],
+  },
+  hyrox: {
+    specifico: [
+      { nome: bi('Riscaldamento corsa leggera', 'Light warm-up run'), kind: 'duration', minuti: 8 },
+      { nome: bi('SkiErg', 'SkiErg'), kind: 'fixed', dettaglio: bi('1000 m', '1000 m') },
+      { nome: bi('Corsa', 'Run'), kind: 'fixed', dettaglio: bi('1 km', '1 km') },
+      { nome: bi('Sled push', 'Sled push'), kind: 'fixed', dettaglio: bi('50 m', '50 m') },
+      { nome: bi('Sled pull', 'Sled pull'), kind: 'fixed', dettaglio: bi('50 m', '50 m') },
+      { nome: bi('Burpee broad jump', 'Burpee broad jump'), kind: 'fixed', dettaglio: bi('40 m', '40 m') },
+      { nome: bi('Farmers carry', 'Farmers carry'), kind: 'fixed', dettaglio: bi('200 m', '200 m') },
+      { nome: bi('Wall balls', 'Wall balls'), kind: 'reps', serie: 1, ripetizioni: 75 },
+      { nome: bi('Defaticamento corsa lenta', 'Slow cool-down run'), kind: 'duration', minuti: 8 },
+    ],
+    supporto: [
+      { nome: bi('Squat a corpo libero', 'Bodyweight squats'), kind: 'reps', serie: 3, ripetizioni: 15 },
+      { nome: bi('Affondi con zavorra', 'Weighted lunges'), kind: 'reps', serie: 3, ripetizioni: 12, perLato: true },
+      { nome: bi('Rematore con manubrio', 'Dumbbell row'), kind: 'reps', serie: 3, ripetizioni: 12, perLato: true },
+      { nome: bi('Mobilità anca e caviglia', 'Hip and ankle mobility'), kind: 'duration', minuti: 8 },
+    ],
+  },
+  pilates: {
+    specifico: [
+      { nome: bi('Respirazione e attivazione core', 'Breathing and core activation'), kind: 'duration', minuti: 5 },
+      { nome: bi('The Hundred', 'The Hundred'), kind: 'reps', serie: 1, ripetizioni: 100 },
+      { nome: bi('Roll up', 'Roll up'), kind: 'reps', serie: 3, ripetizioni: 8 },
+      { nome: bi('Leg circles', 'Leg circles'), kind: 'reps', serie: 3, ripetizioni: 10, perLato: true },
+      { nome: bi('Swan', 'Swan'), kind: 'reps', serie: 3, ripetizioni: 8 },
+      { nome: bi('Rilassamento finale', 'Final relaxation'), kind: 'duration', minuti: 5 },
+    ],
+    supporto: [
+      { nome: bi('Camminata leggera', 'Light walk'), kind: 'duration', minuti: 15 },
+      { nome: bi('Stretching dolce', 'Gentle stretching'), kind: 'duration', minuti: 10 },
     ],
   },
 };

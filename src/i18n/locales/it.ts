@@ -131,8 +131,6 @@ export const it: Locale = {
   workout: {
     title: 'Allenamento',
     sport: 'Sport',
-    other: 'Altro',
-    selectedDiscipline: 'Disciplina selezionata: {sport}',
     level: 'Livello',
     specific: 'Specifico',
     support: 'Supporto',
@@ -147,7 +145,6 @@ export const it: Locale = {
     notConnected: 'Non connesso',
     suggestionTitle: 'Variante proposta',
     suggestionBody: "In base all'attività rilevata dai tuoi dispositivi, potresti aggiungere una sessione di recupero leggero questa settimana.",
-    otherDisciplinesTitle: 'Altre discipline',
     consistencyTitle: 'La tua costanza',
     streakLabel: '{n} giorni di fila',
     streakLabelOne: '1 giorno di fila',
@@ -330,7 +327,8 @@ export const it: Locale = {
   mealTypes: { colazione: 'Colazione', pranzo: 'Pranzo', spuntino: 'Spuntino', cena: 'Cena' },
   shoppingCategories: { verdura: 'Verdura', cereali: 'Cereali', proteine: 'Proteine', dispensa: 'Dispensa' },
   mainSports: {
-    corsa: 'Corsa', ciclismo: 'Ciclismo', nuoto: 'Nuoto', tennis: 'Tennis', palestra: 'Palestra', yoga: 'Yoga', calcio: 'Calcio',
+    corsa: 'Corsa', ciclismo: 'Ciclismo', nuoto: 'Nuoto',
+    'functional-training': 'Functional training', hyrox: 'Hyrox', pilates: 'Pilates',
   },
   lifestyles: {
     'Sedentario': 'Sedentario', 'Leggermente attivo': 'Leggermente attivo', 'Attivo': 'Attivo', 'Molto attivo': 'Molto attivo',

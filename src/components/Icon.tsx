@@ -42,6 +42,8 @@ export type IconName =
   | 'gym'
   | 'yoga'
   | 'soccer'
+  | 'kettlebell'
+  | 'pilatesRing'
   | 'moreDots'
   | 'watch'
   | 'sunrise'
@@ -356,6 +358,20 @@ export function Icon({ name, size = 22, color = colors.text, strokeWidth = 1.8 }
           <Circle cx="12" cy="12" r="8.5" {...common} />
           <Path d="M12 8.5 15.5 11l-1.3 4H9.8L8.5 11Z" {...common} />
           <Path d="M12 8.5V5.5M15.5 11l3-1M13.7 15l1.2 3M10.3 15l-1.2 3M8.5 11l-3-1" {...common} />
+        </Svg>
+      );
+    case 'kettlebell':
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+          <Path d="M9 8.5V7a3 3 0 0 1 6 0v1.5" {...common} />
+          <Circle cx="12" cy="15" r="6.3" {...common} />
+        </Svg>
+      );
+    case 'pilatesRing':
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24">
+          <Circle cx="12" cy="12" r="8" {...common} />
+          <Path d="M3.6 9.5h1.8M3.6 14.5h1.8M18.6 9.5h1.8M18.6 14.5h1.8" {...common} />
         </Svg>
       );
     case 'moreDots':

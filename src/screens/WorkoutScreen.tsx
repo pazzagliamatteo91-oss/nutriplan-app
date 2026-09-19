@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, radii, spacing, shadow } from '../theme';
@@ -9,7 +9,7 @@ import { Icon, IconName } from '../components/Icon';
 import { ColorIcon } from '../components/ColorIcon';
 import { Button } from '../components/Button';
 import { useApp } from '../context/AppContext';
-import { MAIN_SPORTS, EXTENDED_SPORTS, DEVICE_TYPES, WEEKDAYS } from '../data/constants';
+import { MAIN_SPORTS, DEVICE_TYPES, WEEKDAYS } from '../data/constants';
 import { WORKOUT_LEVELS, SPORT_ICONS, LEVEL_WEEKLY_GOAL, specificoLabel, supportoLabel, generateWeekPlan, getSessionExercises } from '../data/workouts';
 import { getSportWorkoutLibrary } from '../data/workoutModules';
 import { WorkoutLevel, Exercise, AI_WORKOUT_SPORTS, AiWorkoutSport } from '../data/types';
@@ -36,7 +36,6 @@ export function WorkoutScreen() {
   const { profile, updateProfile, workoutSelection, setWorkoutSelection, workoutLog, lastWorkoutLog, logWorkoutToday, t, locale, language } = useApp();
   const weekdayInitials = useMemo(() => WEEKDAYS.map((d) => (locale.weekdays[d] ?? d).charAt(0).toUpperCase()), [locale]);
   const sportLabel = (sportId: string) => pick(sportDisplayName(sportId), language);
-  const [extendedOpen, setExtendedOpen] = useState(false);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [dayTab, setDayTab] = useState<Record<string, SessionKind>>({});
   const [focusModuleId, setFocusModuleId] = useState<string | null>(null);
@@ -201,14 +200,7 @@ export function WorkoutScreen() {
               </Pressable>
             );
           })}
-          <Pressable style={styles.sportChip} onPress={() => setExtendedOpen(true)}>
-            <Icon name="moreDots" size={20} color={colors.text} />
-            <Text style={styles.sportLabel} numberOfLines={1}>{t('workout.other')}</Text>
-          </Pressable>
         </View>
-        {!MAIN_SPORTS.some((s) => s.id === sportId) && (
-          <Text style={styles.currentExtended}>{t('workout.selectedDiscipline', { sport: sportLabel(sportId) })}</Text>
-        )}
 
         <Text style={styles.label}>{t('workout.level')}</Text>
         <View style={styles.levelRow}>
@@ -380,33 +372,6 @@ export function WorkoutScreen() {
         </View>
       </View>
 
-      <Modal visible={extendedOpen} transparent animationType="slide" onRequestClose={() => setExtendedOpen(false)}>
-        <View style={styles.modalOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setExtendedOpen(false)} />
-          <View style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>{t('workout.otherDisciplinesTitle')}</Text>
-            <ScrollView style={{ maxHeight: 420 }}>
-              <View style={styles.extendedGrid}>
-                {EXTENDED_SPORTS.map((s) => (
-                  <Pressable
-                    key={s.id}
-                    style={[styles.extendedChip, sportId === s.id && styles.extendedChipActive]}
-                    onPress={() => {
-                      setSport(s.id);
-                      setExtendedOpen(false);
-                    }}
-                  >
-                    <Text style={[styles.extendedLabel, sportId === s.id && styles.extendedLabelActive]}>
-                      {language === 'it' ? s.it : s.en}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
       {isAiSport && (
         <AiWorkoutModal
           visible={aiModalOpen}
@@ -482,7 +447,6 @@ const styles = StyleSheet.create({
   },
   sportLabel: { fontFamily: fonts.bodyMedium, fontSize: 12.5, color: colors.text, textAlign: 'center' },
   sportLabelActive: { color: colors.white, fontFamily: fonts.bodySemiBold },
-  currentExtended: { fontFamily: fonts.body, fontSize: 12, color: colors.highlight, marginBottom: spacing.md },
   levelRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: spacing.lg },
   sessionRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.lg },
   aiCtaCard: {
@@ -567,12 +531,4 @@ const styles = StyleSheet.create({
   suggestionCard: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
   suggestionTitle: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: colors.text, marginBottom: 4 },
   suggestionText: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted, lineHeight: 17 },
-  modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.overlay },
-  modalSheet: { backgroundColor: colors.panel, borderTopLeftRadius: radii.xl, borderTopRightRadius: radii.xl, padding: spacing.lg, paddingBottom: spacing.xxl },
-  modalTitle: { fontFamily: fonts.heading, fontSize: 17, color: colors.text, marginBottom: spacing.md },
-  extendedGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  extendedChip: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: radii.pill, backgroundColor: colors.panelAlt },
-  extendedChipActive: { backgroundColor: colors.accent },
-  extendedLabel: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.text },
-  extendedLabelActive: { color: colors.accentText },
 });

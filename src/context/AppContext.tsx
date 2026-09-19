@@ -29,7 +29,7 @@ export const DEFAULT_PROFILE: UserProfile = {
   allergie: [],
   cucinePreferite: ['mediterranea', 'giapponese'],
   restrizioni: [],
-  sportPreferiti: ['corsa', 'palestra'],
+  sportPreferiti: ['corsa', 'functional-training'],
   giorniSpesa: ['Sabato'],
   dispositivi: { garmin: true, apple_watch: false, amazfit: false },
   onboardingCompletato: false,

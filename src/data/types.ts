@@ -139,7 +139,7 @@ export type SportWorkoutLibrary = {
 
 // --- Motore IA (Anthropic Claude): scheda generata in tempo reale ---
 
-export const AI_WORKOUT_SPORTS = ['corsa', 'ciclismo', 'palestra', 'crossfit', 'hyrox'] as const;
+export const AI_WORKOUT_SPORTS = ['corsa', 'ciclismo', 'nuoto', 'functional-training', 'hyrox', 'pilates'] as const;
 export type AiWorkoutSport = (typeof AI_WORKOUT_SPORTS)[number];
 
 export type AiWorkoutObiettivo =

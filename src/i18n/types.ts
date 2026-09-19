@@ -156,8 +156,6 @@ export type Locale = {
   workout: {
     title: string;
     sport: string;
-    other: string;
-    selectedDiscipline: string; // {sport}
     level: string;
     specific: string;
     support: string;
@@ -172,7 +170,6 @@ export type Locale = {
     notConnected: string;
     suggestionTitle: string;
     suggestionBody: string;
-    otherDisciplinesTitle: string;
     consistencyTitle: string;
     streakLabel: string; // {n}
     streakLabelOne: string;
