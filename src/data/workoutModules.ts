@@ -7,8 +7,9 @@ import { Bilingual, bi, Exercise, WorkoutLevel, WorkoutModule, ModulesByLevel, S
 // (riscaldamento, parte centrale, defaticamento) e con contenuto realmente
 // diverso — non solo scalato numericamente — per ognuno dei 4 livelli.
 //
-// Copertura completa per Corsa, Ciclismo e Nuoto. Gli altri sport (Functional
-// training, Hyrox, Pilates) usano il motore "a pool" esistente in workouts.ts.
+// Copertura completa per Corsa, Ciclismo, Nuoto e Palestra. Gli altri sport
+// (Functional training, Hyrox, Pilates) usano il motore "a pool" esistente in
+// workouts.ts.
 // ---------------------------------------------------------------------------
 
 function ex(nomeIt: string, nomeEn: string, dettIt: string, dettEn: string): Exercise {
@@ -850,6 +851,152 @@ export const NUOTO_LIBRARY: SportWorkoutLibrary = {
 };
 
 // ===========================================================================
+// PALESTRA — sport individuale (allenamento in sala pesi)
+// ===========================================================================
+
+const PALESTRA_WC: WarmCooldownByLevel = {
+  Base: {
+    riscaldamento: [ex('Mobilità articolare generale', 'General joint mobility', '5 min', '5 min')],
+    defaticamento: [ex('Stretching generale', 'General stretching', '2x30s', '2x30s')],
+  },
+  Intermedio: {
+    riscaldamento: [ex('Mobilità articolare dinamica', 'Dynamic joint mobility', '6 min', '6 min'), ex('Serie di avvicinamento leggere', 'Light warm-up sets', '2x10', '2x10')],
+    defaticamento: [ex('Stretching generale', 'General stretching', '3x30s', '3x30s')],
+  },
+  Avanzato: {
+    riscaldamento: [ex('Mobilità articolare completa', 'Full joint mobility', '8 min', '8 min'), ex('Serie di avvicinamento progressive', 'Progressive warm-up sets', '3x8', '3x8')],
+    defaticamento: [ex('Stretching PNF generale', 'General PNF stretching', '3x30s', '3x30s'), ex('Foam roller', 'Foam rolling', '4 min', '4 min')],
+  },
+  Agonista: {
+    riscaldamento: [ex('Mobilità articolare e attivazione neurale', 'Joint mobility and neural activation', '10 min', '10 min'), ex('Serie di avvicinamento pesanti', 'Heavy warm-up sets', '4x5', '4x5')],
+    defaticamento: [ex('Stretching PNF completo', 'Full PNF stretching', '4x30s', '4x30s'), ex('Foam roller completo', 'Full foam rolling', '5 min', '5 min')],
+  },
+};
+
+const PALESTRA_FORZA_MAX = moduloCondiviso(
+  'forza-massimale',
+  bi('Forza Massimale', 'Maximal Strength'),
+  {
+    Base: bi('Introduzione ai fondamentali con carichi leggeri', 'Introduction to the fundamentals with light loads'),
+    Intermedio: bi('Forza sui fondamentali con carichi moderati', 'Fundamental lift strength with moderate loads'),
+    Avanzato: bi('Forza pesante sui grandi fondamentali', 'Heavy strength on the big compound lifts'),
+    Agonista: bi('Forza massimale con carichi vicini al massimale', 'Maximal strength near-1RM loads'),
+  },
+  PALESTRA_WC,
+  {
+    Base: [ex('Squat', 'Squat', '3x10', '3x10'), ex('Panca piana', 'Bench press', '3x10', '3x10')],
+    Intermedio: [ex('Squat', 'Squat', '4x8', '4x8'), ex('Panca piana', 'Bench press', '4x8', '4x8'), ex('Stacco da terra', 'Deadlift', '3x6', '3x6')],
+    Avanzato: [ex('Squat', 'Squat', '5x5', '5x5'), ex('Panca piana', 'Bench press', '5x5', '5x5'), ex('Stacco da terra', 'Deadlift', '4x5', '4x5')],
+    Agonista: [ex('Squat', 'Squat', '5x3', '5x3'), ex('Panca piana', 'Bench press', '5x3', '5x3'), ex('Stacco da terra', 'Deadlift', '5x3', '5x3')],
+  }
+);
+
+const PALESTRA_IPERTROFIA = moduloCondiviso(
+  'ipertrofia',
+  bi('Ipertrofia', 'Hypertrophy'),
+  {
+    Base: bi('Volume moderato per l\'adattamento muscolare', 'Moderate volume for muscular adaptation'),
+    Intermedio: bi('Volume crescente su multi e mono articolari', 'Growing volume on compound and isolation lifts'),
+    Avanzato: bi('Alto volume con tecniche di intensità', 'High volume with intensity techniques'),
+    Agonista: bi('Volume massimo con periodizzazione avanzata', 'Maximum volume with advanced periodization'),
+  },
+  PALESTRA_WC,
+  {
+    Base: [ex('Squat', 'Squat', '3x12', '3x12'), ex('Lat machine', 'Lat pulldown', '3x12', '3x12'), ex('Curl bicipiti', 'Bicep curl', '3x12', '3x12')],
+    Intermedio: [ex('Affondi con manubri', 'Dumbbell lunges', '3x12 per lato', '3x12 per side'), ex('Trazioni', 'Pull-ups', '4x10', '4x10'), ex('Military press', 'Military press', '3x10', '3x10')],
+    Avanzato: [ex('Leg press', 'Leg press', '4x10', '4x10'), ex('Rematore con bilanciere', 'Barbell row', '4x10', '4x10'), ex('Serie con drop-set finale', 'Set with final drop-set', '3x10+drop', '3x10+drop')],
+    Agonista: [ex('Squat con pausa', 'Pause squat', '5x8', '5x8'), ex('Trazioni zavorrate', 'Weighted pull-ups', '5x8', '5x8'), ex('Superserie petto/schiena', 'Chest/back superset', '4x10+10', '4x10+10')],
+  }
+);
+
+const PALESTRA_RESISTENZA_MUSC = moduloCondiviso(
+  'resistenza-muscolare',
+  bi('Resistenza Muscolare/Circuito', 'Muscular Endurance / Circuit'),
+  {
+    Base: bi('Primo circuito a corpo libero', 'First bodyweight circuit'),
+    Intermedio: bi('Circuito con sovraccarichi leggeri', 'Circuit with light loads'),
+    Avanzato: bi('Circuito metabolico ad alta densità', 'High-density metabolic circuit'),
+    Agonista: bi('Circuito competitivo a tempo', 'Timed competitive circuit'),
+  },
+  PALESTRA_WC,
+  {
+    Base: [ex('Circuito: squat, piegamenti, plank', 'Circuit: squat, push-ups, plank', '3 giri', '3 rounds')],
+    Intermedio: [ex('Circuito con kettlebell', 'Kettlebell circuit', '4 giri', '4 rounds')],
+    Avanzato: [ex('Circuito metabolico misto', 'Mixed metabolic circuit', '5 giri', '5 rounds')],
+    Agonista: [ex('Circuito a tempo (AMRAP)', 'Timed circuit (AMRAP)', '15 min', '15 min')],
+  }
+);
+
+const PALESTRA_MOBILITA_GEN = moduloCondiviso(
+  'mobilita-generale',
+  bi('Mobilità Generale', 'General Mobility'),
+  {
+    Base: bi('Mobilità di base per le principali articolazioni', 'Basic mobility for the main joints'),
+    Intermedio: bi('Mobilità dinamica pre-allenamento', 'Dynamic pre-workout mobility'),
+    Avanzato: bi('Mobilità attiva completa', 'Full active mobility'),
+    Agonista: bi('Protocollo completo di mobilità e attivazione', 'Full mobility and activation protocol'),
+  },
+  { Base: { riscaldamento: [ex('Respirazione e attivazione', 'Breathing and activation', '3 min', '3 min')], defaticamento: [ex('Stretching generale', 'General stretching', '2x30s', '2x30s')] },
+    Intermedio: { riscaldamento: [ex('Mobilità dinamica leggera', 'Light dynamic mobility', '5 min', '5 min')], defaticamento: [ex('Stretching generale', 'General stretching', '3x30s', '3x30s')] },
+    Avanzato: { riscaldamento: [ex('Mobilità dinamica completa', 'Full dynamic mobility', '6 min', '6 min')], defaticamento: [ex('Stretching PNF generale', 'General PNF stretching', '3x30s', '3x30s')] },
+    Agonista: { riscaldamento: [ex('Mobilità dinamica avanzata', 'Advanced dynamic mobility', '8 min', '8 min')], defaticamento: [ex('Stretching PNF completo', 'Full PNF stretching', '4x30s', '4x30s')] } },
+  {
+    Base: [ex('Mobilità anca e spalle', 'Hip and shoulder mobility', '10 min', '10 min')],
+    Intermedio: [ex('Mobilità anca, spalle e caviglie', 'Hip, shoulder and ankle mobility', '10 min', '10 min')],
+    Avanzato: [ex('Mobilità articolare completa', 'Full joint mobility', '12 min', '12 min')],
+    Agonista: [ex('Mobilità articolare avanzata con CARs', 'Advanced mobility with CARs', '15 min', '15 min')],
+  }
+);
+
+const PALESTRA_CORE_STAB = moduloCondiviso(
+  'core-stability-palestra',
+  bi('Core Stability', 'Core Stability'),
+  {
+    Base: bi('Attivazione core in isometria', 'Isometric core activation'),
+    Intermedio: bi('Stabilità anti-rotazione e anti-estensione', 'Anti-rotation and anti-extension stability'),
+    Avanzato: bi('Core dinamico sotto carico', 'Dynamic core under load'),
+    Agonista: bi('Core ad alta intensità per il sollevamento', 'High-intensity core for lifting'),
+  },
+  PALESTRA_WC,
+  {
+    Base: [ex('Plank', 'Plank', '3x25s', '3x25s'), ex('Dead bug', 'Dead bug', '3x10', '3x10')],
+    Intermedio: [ex('Pallof press', 'Pallof press', '3x12 per lato', '3x12 per side'), ex('Plank laterale', 'Side plank', '3x25s per lato', '3x25s per side')],
+    Avanzato: [ex('Plank con sovraccarico', 'Loaded plank', '4x30s', '4x30s'), ex('Hollow body hold', 'Hollow body hold', '3x30s', '3x30s')],
+    Agonista: [ex('Farmer\'s walk', 'Farmer\'s walk', '4x30m', '4x30m'), ex('Hollow body con sovraccarico', 'Loaded hollow body hold', '4x30s', '4x30s')],
+  }
+);
+
+const PALESTRA_CARDIO = moduloCondiviso(
+  'cardio-complementare',
+  bi('Cardio Complementare', 'Complementary Cardio'),
+  {
+    Base: bi('Cardio leggero per il recupero attivo', 'Light cardio for active recovery'),
+    Intermedio: bi('Cardio moderato per la capacità aerobica', 'Moderate cardio for aerobic capacity'),
+    Avanzato: bi('Cardio a intervalli per la condizione generale', 'Interval cardio for general conditioning'),
+    Agonista: bi('Cardio ad alta intensità complementare alla forza', 'High-intensity cardio to complement strength work'),
+  },
+  { Base: { riscaldamento: [ex('Camminata di attivazione', 'Activation walk', '3 min', '3 min')], defaticamento: [ex('Camminata di recupero', 'Recovery walk', '5 min', '5 min')] },
+    Intermedio: { riscaldamento: [ex('Camminata veloce di attivazione', 'Brisk activation walk', '4 min', '4 min')], defaticamento: [ex('Camminata di recupero', 'Recovery walk', '5 min', '5 min')] },
+    Avanzato: { riscaldamento: [ex('Jog leggero di attivazione', 'Light activation jog', '5 min', '5 min')], defaticamento: [ex('Camminata di recupero', 'Recovery walk', '6 min', '6 min')] },
+    Agonista: { riscaldamento: [ex('Jog di attivazione', 'Activation jog', '6 min', '6 min')], defaticamento: [ex('Camminata di recupero', 'Recovery walk', '8 min', '8 min')] } },
+  {
+    Base: [ex('Tapis roulant o cyclette moderato', 'Moderate treadmill or stationary bike', '15 min', '15 min')],
+    Intermedio: [ex('Tapis roulant o cyclette moderato', 'Moderate treadmill or stationary bike', '20 min', '20 min')],
+    Avanzato: [ex('Intervalli su tapis roulant/vogatore', 'Treadmill/rower intervals', '8x1 min, rec. 1 min', '8x1 min, 1 min rest')],
+    Agonista: [ex('Intervalli ad alta intensità', 'High-intensity intervals', '10x1 min, rec. 1 min', '10x1 min, 1 min rest')],
+  }
+);
+
+export const PALESTRA_LIBRARY: SportWorkoutLibrary = {
+  sportId: 'palestra',
+  isSportDiSquadra: false,
+  focusLabel: bi('Scheda di Forza', 'Strength Plan'),
+  supportoLabel: bi('Scheda di Supporto', 'Support Plan'),
+  focus: modulesByLevel([PALESTRA_FORZA_MAX, PALESTRA_IPERTROFIA, PALESTRA_RESISTENZA_MUSC]),
+  supporto: modulesByLevel([PALESTRA_MOBILITA_GEN, PALESTRA_CORE_STAB, PALESTRA_CARDIO]),
+};
+
+// ===========================================================================
 // Registro delle librerie disponibili
 // ===========================================================================
 
@@ -857,6 +1004,7 @@ export const SPORT_WORKOUT_LIBRARIES: Record<string, SportWorkoutLibrary> = {
   corsa: CORSA_LIBRARY,
   ciclismo: CICLISMO_LIBRARY,
   nuoto: NUOTO_LIBRARY,
+  palestra: PALESTRA_LIBRARY,
 };
 
 export function getSportWorkoutLibrary(sportId: string): SportWorkoutLibrary | null {

@@ -104,6 +104,7 @@ export const MAIN_SPORTS: Option[] = [
   { id: 'corsa', label: 'Corsa' },
   { id: 'ciclismo', label: 'Ciclismo' },
   { id: 'nuoto', label: 'Nuoto' },
+  { id: 'palestra', label: 'Palestra' },
   { id: 'functional-training', label: 'Functional training' },
   { id: 'hyrox', label: 'Hyrox' },
   { id: 'pilates', label: 'Pilates' },

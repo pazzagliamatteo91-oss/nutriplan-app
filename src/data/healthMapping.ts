@@ -35,11 +35,11 @@ export const SPORT_HEALTH_MAPPING: Record<string, SportHealthMapping> = {
   corsa: { healthKit: 'Running', healthConnect: 'EXERCISE_TYPE_RUNNING' },
   ciclismo: { healthKit: 'Cycling', healthConnect: 'EXERCISE_TYPE_BIKING' },
   nuoto: { healthKit: 'Swimming', healthConnect: 'EXERCISE_TYPE_SWIMMING_POOL' },
+  palestra: { healthKit: 'TraditionalStrengthTraining', healthConnect: 'EXERCISE_TYPE_STRENGTH_TRAINING' },
 
   // --- Voci storiche, non più tra i MAIN_SPORTS ma utili come riferimento
   // per il riconoscimento automatico di attività rilevate dallo smartwatch ---
   tennis: { healthKit: 'Tennis', healthConnect: 'EXERCISE_TYPE_TENNIS' },
-  palestra: { healthKit: 'TraditionalStrengthTraining', healthConnect: 'EXERCISE_TYPE_STRENGTH_TRAINING' },
   yoga: { healthKit: 'Yoga', healthConnect: 'EXERCISE_TYPE_YOGA' },
   calcio: { healthKit: 'Soccer', healthConnect: 'EXERCISE_TYPE_SOCCER', teamSport: true },
 

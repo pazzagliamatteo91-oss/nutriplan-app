@@ -27,7 +27,7 @@ type Props = {
   initialTipoSessione: WorkoutSessionType;
 };
 
-const OVERLOAD_SPORTS: AiWorkoutSport[] = ['functional-training', 'hyrox'];
+const OVERLOAD_SPORTS: AiWorkoutSport[] = ['palestra', 'functional-training', 'hyrox'];
 
 const OBJECTIVES: { value: AiWorkoutObiettivo; labelKey: string }[] = [
   { value: 'Forza', labelKey: 'aiObjectiveForza' },

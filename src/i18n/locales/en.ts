@@ -327,7 +327,7 @@ export const en: Locale = {
   mealTypes: { colazione: 'Breakfast', pranzo: 'Lunch', spuntino: 'Snack', cena: 'Dinner' },
   shoppingCategories: { verdura: 'Vegetables', cereali: 'Grains', proteine: 'Protein', dispensa: 'Pantry' },
   mainSports: {
-    corsa: 'Running', ciclismo: 'Cycling', nuoto: 'Swimming',
+    corsa: 'Running', ciclismo: 'Cycling', nuoto: 'Swimming', palestra: 'Gym',
     'functional-training': 'Functional training', hyrox: 'Hyrox', pilates: 'Pilates',
   },
   lifestyles: {

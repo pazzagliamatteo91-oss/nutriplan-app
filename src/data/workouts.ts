@@ -9,12 +9,12 @@ import { toDateKey } from './mealPlan';
 export function generateMockWorkoutLog(): WorkoutLogEntry[] {
   const entries: { n: number; sportId: string }[] = [
     { n: 1, sportId: 'corsa' },
-    { n: 3, sportId: 'functional-training' },
+    { n: 3, sportId: 'palestra' },
     { n: 5, sportId: 'corsa' },
     { n: 9, sportId: 'corsa' },
-    { n: 12, sportId: 'functional-training' },
+    { n: 12, sportId: 'palestra' },
     { n: 16, sportId: 'corsa' },
-    { n: 20, sportId: 'functional-training' },
+    { n: 20, sportId: 'palestra' },
     { n: 23, sportId: 'corsa' },
     { n: 27, sportId: 'corsa' },
   ];
@@ -41,6 +41,7 @@ export const SPORT_ICONS: Record<string, IconName> = {
   corsa: 'running',
   ciclismo: 'cycling',
   nuoto: 'swimming',
+  palestra: 'gym',
   'functional-training': 'gym',
   hyrox: 'kettlebell',
   pilates: 'pilatesRing',
@@ -50,6 +51,7 @@ const SPECIFICO_LABELS: Record<string, Bilingual> = {
   corsa: bi('Sessione tecnica di corsa', 'Running technical session'),
   ciclismo: bi('Uscita con variazioni di ritmo', 'Ride with pace variations'),
   nuoto: bi('Sessione tecnica in vasca', 'Technical pool session'),
+  palestra: bi('Scheda di forza', 'Strength program'),
   'functional-training': bi('Circuito funzionale ad alta intensità', 'High-intensity functional circuit'),
   hyrox: bi('Simulazione stazioni Hyrox', 'Hyrox station simulation'),
   pilates: bi('Sequenza di controllo e core', 'Control and core sequence'),
@@ -59,6 +61,7 @@ const SUPPORTO_LABELS: Record<string, Bilingual> = {
   corsa: bi('Rinforzo e mobilità', 'Strengthening and mobility'),
   ciclismo: bi('Forza per gambe e core', 'Strength for legs and core'),
   nuoto: bi('Mobilità e potenziamento a secco', 'Dryland mobility and conditioning'),
+  palestra: bi('Cardio complementare', 'Complementary cardio'),
   'functional-training': bi('Mobilità e core', 'Mobility and core'),
   hyrox: bi('Forza per le stazioni', 'Strength for the stations'),
   pilates: bi('Camminata e respirazione', 'Walking and breathing'),
@@ -168,6 +171,20 @@ const SPORT_POOLS: Record<string, SportPools> = {
       { nome: bi('Plank', 'Plank'), kind: 'time', serie: 3, secondi: 40 },
       { nome: bi('Mobilità spalle', 'Shoulder mobility'), kind: 'duration', minuti: 8 },
       { nome: bi('Russian twist', 'Russian twist'), kind: 'reps', serie: 3, ripetizioni: 20 },
+    ],
+  },
+  palestra: {
+    specifico: [
+      { nome: bi('Squat', 'Squat'), kind: 'reps', serie: 4, ripetizioni: 8 },
+      { nome: bi('Panca piana', 'Bench press'), kind: 'reps', serie: 4, ripetizioni: 8 },
+      { nome: bi('Stacco da terra', 'Deadlift'), kind: 'reps', serie: 3, ripetizioni: 6 },
+      { nome: bi('Military press', 'Military press'), kind: 'reps', serie: 3, ripetizioni: 10 },
+      { nome: bi('Trazioni o lat machine', 'Pull-ups or lat pulldown'), kind: 'reps', serie: 3, ripetizioni: 10 },
+    ],
+    supporto: [
+      { nome: bi('Tapis roulant o cyclette moderato', 'Moderate treadmill or stationary bike'), kind: 'duration', minuti: 20 },
+      { nome: bi('Plank', 'Plank'), kind: 'time', serie: 3, secondi: 45 },
+      { nome: bi('Mobilità generale', 'General mobility'), kind: 'duration', minuti: 10 },
     ],
   },
   'functional-training': {
