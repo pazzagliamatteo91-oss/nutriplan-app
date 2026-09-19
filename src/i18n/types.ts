@@ -183,6 +183,7 @@ export type Locale = {
     thisWeekLabel: string;
     legendThisWeek: string; // {n}
     legendLastWeek: string; // {n}
+    legendStreak: string; // {n}
     vsLastWeekUp: string; // {n}
     vsLastWeekDown: string; // {n}
     vsLastWeekSame: string;

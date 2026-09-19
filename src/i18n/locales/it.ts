@@ -158,6 +158,7 @@ export const it: Locale = {
     thisWeekLabel: 'settimana',
     legendThisWeek: 'Questa sett. ({n})',
     legendLastWeek: 'Sett. scorsa ({n})',
+    legendStreak: 'Serie di giorni ({n})',
     vsLastWeekUp: '+{n}% vs sett. scorsa',
     vsLastWeekDown: '{n}% vs sett. scorsa',
     vsLastWeekSame: 'come la sett. scorsa',

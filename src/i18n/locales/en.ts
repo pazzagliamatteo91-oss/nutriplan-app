@@ -158,6 +158,7 @@ export const en: Locale = {
     thisWeekLabel: 'this week',
     legendThisWeek: 'This week ({n})',
     legendLastWeek: 'Last week ({n})',
+    legendStreak: 'Day streak ({n})',
     vsLastWeekUp: '+{n}% vs last week',
     vsLastWeekDown: '{n}% vs last week',
     vsLastWeekSame: 'same as last week',

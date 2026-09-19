@@ -28,6 +28,7 @@ const AVOCADO_SIZE = 150;
 // Variante "fuoco" dell'icona avocado, solo per questo header: nocciolo nero,
 // polpa arancione, buccia rossa, in linea con l'accento acceso della sezione.
 const AVOCADO_FIRE_PALETTE = { skin: colors.berry, flesh: '#E2791E', pit: '#1A1A1A' };
+const STREAK_GOAL_DAYS = 7;
 
 export function WorkoutScreen() {
   const insets = useSafeAreaInsets();
@@ -61,6 +62,7 @@ export function WorkoutScreen() {
   const weeklyGoal = LEVEL_WEEKLY_GOAL[livello];
   const outerRingPercent = weeklyGoal > 0 ? (thisWeek / weeklyGoal) * 100 : 0;
   const innerRingPercent = weeklyGoal > 0 ? (lastWeek / weeklyGoal) * 100 : 0;
+  const streakRingPercent = (streak / STREAK_GOAL_DAYS) * 100;
   const trendLabel = useMemo(() => {
     if (lastWeek === 0 && thisWeek === 0) return t('workout.vsLastWeekNone');
     if (lastWeek === 0) return t('workout.vsLastWeekNew');
@@ -149,21 +151,26 @@ export function WorkoutScreen() {
           <View style={styles.consistencyBody}>
             <ConsistencyRing
               size={116}
-              outerPercent={outerRingPercent}
-              innerPercent={innerRingPercent}
-              centerLabel={`${thisWeek}/${weeklyGoal}`}
-              centerSubLabel={t('workout.thisWeekLabel')}
+              rings={[
+                { percent: outerRingPercent, color: colors.berry },
+                { percent: innerRingPercent, color: colors.warning },
+                { percent: streakRingPercent, color: colors.accent },
+              ]}
             />
             <View style={styles.consistencyInfo}>
               <Text style={[styles.trendLabel, { color: trendColor }]}>{trendLabel}</Text>
-              <View style={styles.ringLegendRow}>
+              <View style={styles.ringLegendColumn}>
                 <View style={styles.ringLegendItem}>
-                  <View style={[styles.ringLegendDot, { backgroundColor: colors.waveSkin }]} />
+                  <View style={[styles.ringLegendDot, { backgroundColor: colors.berry }]} />
                   <Text style={styles.ringLegendLabel}>{t('workout.legendThisWeek', { n: thisWeek })}</Text>
                 </View>
                 <View style={styles.ringLegendItem}>
-                  <View style={[styles.ringLegendDot, { backgroundColor: colors.wavePit }]} />
+                  <View style={[styles.ringLegendDot, { backgroundColor: colors.warning }]} />
                   <Text style={styles.ringLegendLabel}>{t('workout.legendLastWeek', { n: lastWeek })}</Text>
+                </View>
+                <View style={styles.ringLegendItem}>
+                  <View style={[styles.ringLegendDot, { backgroundColor: colors.accent }]} />
+                  <Text style={styles.ringLegendLabel}>{t('workout.legendStreak', { n: streak })}</Text>
                 </View>
               </View>
             </View>
@@ -457,7 +464,7 @@ const styles = StyleSheet.create({
   consistencyInfo: { flex: 1, gap: spacing.sm },
   weekStripWrap: { marginTop: spacing.lg, alignItems: 'center' },
   trendLabel: { fontFamily: fonts.bodySemiBold, fontSize: 12.5 },
-  ringLegendRow: { flexDirection: 'row', gap: spacing.md },
+  ringLegendColumn: { gap: 6 },
   ringLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   ringLegendDot: { width: 8, height: 8, borderRadius: 4 },
   ringLegendLabel: { fontFamily: fonts.body, fontSize: 11.5, color: colors.textMuted },
