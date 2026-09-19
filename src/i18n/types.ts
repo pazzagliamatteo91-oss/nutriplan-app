@@ -186,6 +186,13 @@ export type Locale = {
     vsLastWeekSame: string;
     vsLastWeekNew: string;
     vsLastWeekNone: string;
+    logSetsButton: string;
+    logSetsDone: string;
+    logSetsLastTime: string; // {sets}
+    logSetsAddSet: string;
+    logSetsSave: string;
+    logSetsWeightLabel: string;
+    logSetsRepsLabel: string;
     healthSyncTitle: string;
     healthSyncBody: string; // {minutes}
     healthSyncConfirm: string;

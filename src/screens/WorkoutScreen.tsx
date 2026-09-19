@@ -8,6 +8,7 @@ import { Chip } from '../components/Chip';
 import { Icon, IconName } from '../components/Icon';
 import { ColorIcon } from '../components/ColorIcon';
 import { Button } from '../components/Button';
+import { SetLogger } from '../components/SetLogger';
 import { useApp } from '../context/AppContext';
 import { MAIN_SPORTS, DEVICE_TYPES, WEEKDAYS } from '../data/constants';
 import { WORKOUT_LEVELS, SPORT_ICONS, LEVEL_WEEKLY_GOAL, specificoLabel, supportoLabel, generateWeekPlan, getSessionExercises } from '../data/workouts';
@@ -312,9 +313,17 @@ export function WorkoutScreen() {
                 {isExpanded && !day.isRiposo && (
                   <View style={styles.dayExercises}>
                     {session.esercizi.map((ex, idx) => (
-                      <View key={idx} style={styles.exerciseRow}>
-                        <Text style={styles.exerciseName}>{pick(ex.nome, language)}</Text>
-                        <Text style={styles.exerciseDettaglio}>{pick(ex.dettaglio, language)}</Text>
+                      <View key={idx} style={styles.exerciseBlock}>
+                        <View style={styles.exerciseRow}>
+                          <Text style={styles.exerciseName}>{pick(ex.nome, language)}</Text>
+                          <Text style={styles.exerciseDettaglio}>{pick(ex.dettaglio, language)}</Text>
+                        </View>
+                        <SetLogger
+                          sportId={sportId}
+                          tipoSessione={activeTab === 'specifico' ? 'Specifico' : 'Supporto'}
+                          esercizio={pick(ex.nome, 'it')}
+                          dettaglio={pick(ex.dettaglio, 'it')}
+                        />
                       </View>
                     ))}
                   </View>
@@ -515,6 +524,11 @@ const styles = StyleSheet.create({
   dayContentRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dayDuration: { fontFamily: fonts.body, fontSize: 12, color: colors.textFaint },
   dayExercises: { paddingBottom: spacing.sm, paddingLeft: 70 + spacing.sm },
+  exerciseBlock: {
+    paddingVertical: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
   exerciseRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4,
   },

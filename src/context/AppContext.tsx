@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { UserProfile, AnalysisValue, ShoppingItem, MealPlanEntry, MealType, DiaryEntry, WorkoutLogEntry, bi } from '../data/types';
+import { UserProfile, AnalysisValue, ShoppingItem, MealPlanEntry, MealType, DiaryEntry, WorkoutLogEntry, WorkoutSessionLog, SetEntry, WorkoutSessionType, bi } from '../data/types';
 import { generateMockAnalysis, noteForValue } from '../data/analysisParams';
 import { generateShoppingList, ShoppingScale } from '../data/shopping';
 import { generateMockDiary } from '../data/diary';
@@ -46,6 +46,7 @@ type PersistedState = {
   analysisValues: AnalysisValue[];
   workoutSelection: WorkoutSelection;
   workoutLog: WorkoutLogEntry[];
+  workoutSessionLogs: WorkoutSessionLog[];
   mealPlan: MealPlanEntry[];
   diaryEntries: DiaryEntry[];
   shoppingReminderIds: string[];
@@ -72,6 +73,9 @@ type AppContextValue = {
   workoutLog: WorkoutLogEntry[];
   lastWorkoutLog: string | null;
   logWorkoutToday: (sportId: string) => void;
+  logExerciseSets: (sportId: string, tipoSessione: WorkoutSessionType, esercizio: string, serie: SetEntry[]) => void;
+  getTodayExerciseSets: (sportId: string, tipoSessione: WorkoutSessionType, esercizio: string) => SetEntry[] | null;
+  getLastExerciseSets: (sportId: string, tipoSessione: WorkoutSessionType, esercizio: string) => SetEntry[] | null;
 
   mealPlan: MealPlanEntry[];
   setMealPlanEntry: (data: string, pasto: MealType, recipeId: string | null) => void;
@@ -97,6 +101,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [analysisValues, setAnalysisValues] = useState<AnalysisValue[]>(() => generateMockAnalysis());
   const [workoutSelection, setWorkoutSelectionState] = useState<WorkoutSelection>({ sportId: 'corsa', livello: 'Intermedio' });
   const [workoutLog, setWorkoutLog] = useState<WorkoutLogEntry[]>(() => generateMockWorkoutLog());
+  const [workoutSessionLogs, setWorkoutSessionLogs] = useState<WorkoutSessionLog[]>([]);
   const [mealPlan, setMealPlan] = useState<MealPlanEntry[]>([]);
   const [diaryEntries, setDiaryEntries] = useState<DiaryEntry[]>(() => generateMockDiary());
   const [shoppingReminderIds, setShoppingReminderIds] = useState<string[]>([]);
@@ -138,6 +143,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               ? [{ data: toDateKey(new Date(legacyLastLog)), sportId: restoredSelection.sportId }]
               : [];
           setWorkoutLog(normalizedLog);
+          setWorkoutSessionLogs(parsed.workoutSessionLogs ?? []);
           setMealPlan(parsed.mealPlan ?? []);
           setDiaryEntries(parsed.diaryEntries ?? generateMockDiary());
           setShoppingReminderIds(parsed.shoppingReminderIds ?? []);
@@ -155,11 +161,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!loaded) return;
     const state: PersistedState = {
-      profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, workoutLog,
+      profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, workoutLog, workoutSessionLogs,
       mealPlan, diaryEntries, shoppingReminderIds, language,
     };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state)).catch(() => {});
-  }, [loaded, profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, workoutLog, mealPlan, diaryEntries, shoppingReminderIds, language]);
+  }, [loaded, profile, shoppingScale, shoppingItems, analysisValues, workoutSelection, workoutLog, workoutSessionLogs, mealPlan, diaryEntries, shoppingReminderIds, language]);
 
   // Mantiene i promemoria spesa allineati ai giorni scelti nel profilo:
   // ripianifica le notifiche locali ogni volta che i giorni cambiano (incluso al primo avvio).
@@ -232,6 +238,54 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const lastWorkoutLog = workoutLog.length ? workoutLog[workoutLog.length - 1].data : null;
 
+  // Registra le serie (peso/ripetizioni) di un esercizio per la sessione di
+  // oggi, sostituendo un eventuale log già salvato oggi per lo stesso
+  // esercizio (l'utente può correggere/aggiornare finché è lo stesso giorno).
+  const logExerciseSets = useCallback(
+    (sportId: string, tipoSessione: WorkoutSessionType, esercizio: string, serie: SetEntry[]) => {
+      const today = toDateKey(new Date());
+      setWorkoutSessionLogs((prev) => {
+        const sessionIdx = prev.findIndex((s) => s.data === today && s.sportId === sportId && s.tipoSessione === tipoSessione);
+        if (sessionIdx === -1) {
+          return [...prev, { data: today, sportId, tipoSessione, esercizi: [{ esercizio, serie }] }];
+        }
+        const session = prev[sessionIdx];
+        const exIdx = session.esercizi.findIndex((e) => e.esercizio === esercizio);
+        const esercizi =
+          exIdx === -1
+            ? [...session.esercizi, { esercizio, serie }]
+            : session.esercizi.map((e, i) => (i === exIdx ? { ...e, serie } : e));
+        return prev.map((s, i) => (i === sessionIdx ? { ...s, esercizi } : s));
+      });
+    },
+    []
+  );
+
+  const getTodayExerciseSets = useCallback(
+    (sportId: string, tipoSessione: WorkoutSessionType, esercizio: string): SetEntry[] | null => {
+      const today = toDateKey(new Date());
+      const session = workoutSessionLogs.find((s) => s.data === today && s.sportId === sportId && s.tipoSessione === tipoSessione);
+      return session?.esercizi.find((e) => e.esercizio === esercizio)?.serie ?? null;
+    },
+    [workoutSessionLogs]
+  );
+
+  // Ultimo log salvato per lo stesso esercizio prima di oggi, usato come
+  // riferimento ("l'ultima volta hai fatto...") mentre si registra la serie.
+  const getLastExerciseSets = useCallback(
+    (sportId: string, tipoSessione: WorkoutSessionType, esercizio: string): SetEntry[] | null => {
+      const today = toDateKey(new Date());
+      for (let i = workoutSessionLogs.length - 1; i >= 0; i--) {
+        const session = workoutSessionLogs[i];
+        if (session.sportId !== sportId || session.tipoSessione !== tipoSessione || session.data === today) continue;
+        const found = session.esercizi.find((e) => e.esercizio === esercizio);
+        if (found) return found.serie;
+      }
+      return null;
+    },
+    [workoutSessionLogs]
+  );
+
   const setMealPlanEntry = useCallback((data: string, pasto: MealType, recipeId: string | null) => {
     setMealPlan((prev) => {
       const withoutSlot = prev.filter((e) => !(e.data === data && e.pasto === pasto));
@@ -282,8 +336,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       workoutSelection,
       setWorkoutSelection,
       workoutLog,
+      workoutSessionLogs,
       lastWorkoutLog,
       logWorkoutToday,
+      logExerciseSets,
+      getTodayExerciseSets,
+      getLastExerciseSets,
       mealPlan,
       setMealPlanEntry,
       generateShoppingListFromPlan,
@@ -298,7 +356,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [
       loaded, profile, updateProfile, toggleListMember, shoppingScale, setShoppingScale, shoppingItems,
       toggleShoppingItem, resetShoppingListForScale, analysisValues, updateAnalysisValue, workoutSelection,
-      setWorkoutSelection, workoutLog, lastWorkoutLog, logWorkoutToday, mealPlan, setMealPlanEntry, generateShoppingListFromPlan,
+      setWorkoutSelection, workoutLog, workoutSessionLogs, lastWorkoutLog, logWorkoutToday, logExerciseSets, getTodayExerciseSets, getLastExerciseSets,
+      mealPlan, setMealPlanEntry, generateShoppingListFromPlan,
       diaryEntries, addDiaryEntry, removeDiaryEntry, language, setLanguage, t, locale,
     ]
   );

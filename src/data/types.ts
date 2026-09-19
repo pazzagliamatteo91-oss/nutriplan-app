@@ -108,6 +108,30 @@ export type WorkoutDay = {
   supporto: { descrizione: Bilingual; durataMinuti: number; esercizi: Exercise[] };
 };
 
+// --- Registro allenamento con pesi (Fase 1 roadmap: peso/ripetizioni per
+// singola serie, non solo "completato"), per il confronto progressivo nel
+// tempo. L'esercizio è identificato dal suo nome in italiano: è stabile
+// all'interno di uno stesso sportId+tipoSessione perché i pool di esercizi
+// non cambiano nome da una generazione all'altra, ed evita di dover
+// introdurre un id su ogni esercizio dell'intera libreria di contenuti. ---
+
+export type SetEntry = {
+  peso: number | null; // kg; null per esercizi senza sovraccarico esterno
+  ripetizioni: number | null; // null per esercizi a tempo/durata
+};
+
+export type ExerciseSetLog = {
+  esercizio: string; // nome dell'esercizio in italiano
+  serie: SetEntry[];
+};
+
+export type WorkoutSessionLog = {
+  data: string; // 'YYYY-MM-DD'
+  sportId: string;
+  tipoSessione: WorkoutSessionType;
+  esercizi: ExerciseSetLog[];
+};
+
 // --- Motore dei contenuti delle schede (moduli a scelta, stile preparatore atletico) ---
 
 export type SessionPhase = 'riscaldamento' | 'centrale' | 'defaticamento';
